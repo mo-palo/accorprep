@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accor AI PDLC Backbone — Project Onboarding</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-family: 'Inter', system-ui, sans-serif; }
+    body { background: #0f1528; color: #e2e8f0; min-height: 100vh; }
+
+    :root {
+      --gold: #D4AF37; --gold-l: #e8c84d; --gold-dim: rgba(212,175,55,0.10);
+      --bg: #0f1528; --surface: #1a1f35; --elevated: #222840;
+      --border: #2a3150; --border-h: #3a4268;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+    ::selection { background: rgba(212,175,55,0.22); }
+
+    /* Layout */
+    .container { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 72px 0; border-top: 1px solid var(--border); scroll-margin-top: 58px; }
+
+    /* Nav */
+    #nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(15,21,40,0.96); backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border); height: 56px; display: flex; align-items: center; }
+    .nav-link { color: #64748b; font-size: 12.5px; font-weight: 500; text-decoration: none;
+      padding: 5px 9px; border-radius: 6px; transition: color 0.15s; white-space: nowrap; }
+    .nav-link:hover, .nav-link.active { color: var(--gold); }
+
+    /* Typography */
+    .label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; display: block; }
+    .title { font-size: clamp(22px,3vw,30px); font-weight: 700; color: #f1f5f9; line-height: 1.25; margin-bottom: 8px; }
+    .sub { color: #94a3b8; font-size: 15px; line-height: 1.65; }
+    .text-gold { color: var(--gold); }
+
+    /* Cards */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+    .card-e { background: var(--elevated); border: 1px solid var(--border); border-radius: 12px; }
+    .card:hover { border-color: var(--border-h); }
+
+    /* Badges */
+    .badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px;
+      border-radius: 20px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; white-space: nowrap; border: 1px solid; }
+    .b-tech  { background: rgba(59,130,246,.1);  color: #93c5fd; border-color: rgba(59,130,246,.25); }
+    .b-func  { background: rgba(212,175,55,.1);  color: var(--gold); border-color: rgba(212,175,55,.3); }
+    .b-spec  { background: rgba(168,85,247,.1);  color: #c4b5fd; border-color: rgba(168,85,247,.25); }
+    .b-scope { background: rgba(34,197,94,.1);   color: #86efac; border-color: rgba(34,197,94,.25); }
+    .b-yours { background: rgba(212,175,55,.18); color: #f0d980; border-color: var(--gold); }
+    .b-risk  { background: rgba(239,68,68,.1);   color: #fca5a5; border-color: rgba(239,68,68,.3); }
+    .b-dur   { background: rgba(148,163,184,.08);color: #94a3b8; border-color: rgba(148,163,184,.18);}
+
+    /* Callouts */
+    .callout      { background: var(--gold-dim); border: 1px solid rgba(212,175,55,.25); border-radius: 10px; padding: 16px 20px; }
+    .callout-warn { background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.25); border-radius: 10px; padding: 16px 20px; }
+    .callout-info { background: rgba(59,130,246,.06); border: 1px solid rgba(59,130,246,.2); border-radius: 10px; padding: 16px 20px; }
+    .callout-ok   { background: rgba(34,197,94,.06); border: 1px solid rgba(34,197,94,.2); border-radius: 10px; padding: 16px 20px; }
+
+    /* Bullet list */
+    .blist { list-style: none; }
+    .blist li { padding: 4px 0 4px 16px; position: relative; color: #94a3b8; font-size: 13.5px; line-height: 1.55; }
+    .blist li::before { content: '›'; position: absolute; left: 0; color: var(--gold); font-weight: 700; }
+
+    /* Unit cards */
+    .unit-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; transition: border-color .15s; }
+    .unit-card:hover { border-color: var(--border-h); }
+    .unit-card.expanded { border-color: var(--gold) !important; }
+    .unit-card.u-hidden { display: none !important; }
+    .unit-hdr { cursor: pointer; padding: 18px 20px; display: flex; align-items: flex-start; gap: 14px; }
+    .unit-body { display: none; border-top: 1px solid var(--border); padding: 20px; }
+    .unit-card.expanded .unit-body { display: block; }
+    .unit-card.expanded .chev { transform: rotate(180deg); }
+    .chev { transition: transform .2s; flex-shrink: 0; color: #475569; margin-top: 2px; }
+
+    /* Filter bar */
+    .fbtn { padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 500;
+      border: 1px solid var(--border); background: transparent; color: #64748b;
+      cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .fbtn:hover { border-color: var(--border-h); color: #e2e8f0; }
+    .fbtn.factive { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+    #usearch { background: var(--elevated); border: 1px solid var(--border); border-radius: 20px;
+      padding: 6px 14px; color: #e2e8f0; font-size: 12.5px; outline: none; width: 190px; }
+    #usearch:focus { border-color: var(--gold); }
+    #usearch::placeholder { color: #3a4268; }
+
+    /* PDLC stages */
+    .stage { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px 12px; cursor: pointer; transition: all .15s; text-align: center; min-width: 110px; }
+    .stage:hover { border-color: var(--gold); background: rgba(212,175,55,.04); }
+    .stage.s-active { border-color: var(--gold) !important; background: rgba(212,175,55,.08) !important; }
+    .stage.s-active .s-label { color: var(--gold); }
+
+    /* Timeline */
+    .tl-grid { display: grid; gap: 2px; }
+    .tl-bar { height: 30px; border-radius: 6px; display: flex; align-items: center;
+      padding: 0 10px; font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; }
+    .tl-row { display: grid; align-items: center; gap: 4px; margin-bottom: 6px; }
+    .tl-label { font-size: 12px; color: #64748b; font-weight: 500; }
+
+    /* Risk rows */
+    .risk-row { cursor: pointer; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .risk-row:last-child { border-bottom: none; }
+    .risk-row:hover { background: rgba(255,255,255,.015); }
+    .risk-detail { display: none; padding: 8px 0 4px 24px; }
+    .risk-row.r-open .risk-detail { display: block; }
+    .risk-row.r-open .r-chev { transform: rotate(180deg); }
+    .r-chev { transition: transform .2s; flex-shrink: 0; }
+
+    /* Likelihood pills */
+    .pill-high   { background: rgba(239,68,68,.12);  color: #fca5a5; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .pill-medium { background: rgba(234,179,8,.12);  color: #fde047; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .pill-low    { background: rgba(34,197,94,.1);   color: #86efac; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+
+    /* Tool cards */
+    .tool-card { background: var(--elevated); border: 1px solid var(--border); border-radius: 9px;
+      padding: 11px 13px; display: flex; align-items: center; gap: 9px; }
+    .tool-card:hover { border-color: var(--border-h); }
+
+    /* Tabs */
+    .tab-btn { padding: 8px 16px; font-size: 13.5px; font-weight: 500; color: #64748b;
+      background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all .15s; }
+    .tab-btn:hover { color: #e2e8f0; }
+    .tab-btn.t-active { color: var(--gold); border-bottom-color: var(--gold); }
+    .tab-pane { display: none; }
+    .tab-pane.t-active { display: block; }
+
+    /* Phase */
+    .phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; flex: 1; }
+
+    /* Stat */
+    .stat { background: var(--elevated); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; }
+
+    /* Hero */
+    #hero { padding-top: 88px !important; background: linear-gradient(135deg,#0a0f20 0%,#1a1f35 55%,#0a0f20 100%); border-top: none; }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .fu { animation: fadeUp .35s ease-out; }
+
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+    /* Unit section title row */
+    .unit-section-title { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: #3a4268; padding: 16px 0 8px; margin-top: 8px; }
+
+    /* Success box */
+    .success-box { background: rgba(34,197,94,.06); border: 1px solid rgba(34,197,94,.2);
+      border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+    .success-box .s-title { font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: #86efac; margin-bottom: 6px; }
+
+    /* Inner sections in unit body */
+    .ub-section { margin-top: 14px; }
+    .ub-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: #3a4268; margin-bottom: 6px; }
+    .ub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media(max-width:640px){ .ub-grid { grid-template-columns: 1fr; } }
+
+    /* Role highlight */
+    .your-role-card { border-color: rgba(212,175,55,.4) !important; background: rgba(212,175,55,.04) !important; }
+
+    /* Grid helpers */
+    .g2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .g5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    @media(max-width:900px){ .g4{grid-template-columns:repeat(2,1fr)} .g5{grid-template-columns:repeat(3,1fr)} }
+    @media(max-width:700px){ .g3,.g2{grid-template-columns:1fr} }
+    @media(max-width:500px){ .g5{grid-template-columns:repeat(2,1fr)} }
+
+    .flex-center { display: flex; align-items: center; }
+    .flex-wrap { display: flex; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ NAV ═══════════════════════════════════ -->
+<nav id="nav">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div style="background:var(--gold);color:#0f1528;font-weight:800;font-size:12px;padding:4px 8px;border-radius:5px;letter-spacing:.04em;">ACCOR</div>
+      <span style="color:#3a4268;font-size:12px;font-weight:500;">AI PDLC Backbone</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:2px;overflow-x:auto;padding-bottom:1px;">
+      <a href="#context"      class="nav-link">Context</a>
+      <a href="#approach"     class="nav-link">Approach</a>
+      <a href="#pdlc"         class="nav-link">PDLC</a>
+      <a href="#units"        class="nav-link">Work Units</a>
+      <a href="#your-role"    class="nav-link">Your Role</a>
+      <a href="#mock-project" class="nav-link">Mock Project</a>
+      <a href="#team"         class="nav-link">Team</a>
+      <a href="#timeline"     class="nav-link">Timeline</a>
+      <a href="#tools"        class="nav-link">Tools</a>
+      <a href="#risks"        class="nav-link">Risks</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
+<section id="hero">
+  <div class="container">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;">
+      <span class="badge b-scope">PALO IT × Accor</span>
+      <span class="badge b-dur">Engagement kickoff mid-2026</span>
+      <span class="badge b-tech">Bangkok, Thailand — On-site</span>
+    </div>
+
+    <h1 style="font-size:clamp(28px,5vw,54px);font-weight:800;line-height:1.08;margin-bottom:18px;max-width:820px;">
+      AI-Enabled PDLC<br>
+      <span class="text-gold">Tech Backbone</span>
+    </h1>
+    <p style="color:#94a3b8;font-size:16px;max-width:600px;line-height:1.7;margin-bottom:36px;">
+      Your complete onboarding guide — context, scope, every work unit explained, your functional role, the mock project, team, timeline, tools, and risks. Everything before Day 1.
+    </p>
+
+    <div class="g4" style="max-width:840px;margin-bottom:40px;">
+      <div class="stat">
+        <div style="font-size:34px;font-weight:800;color:var(--gold);line-height:1;">9</div>
+        <div style="font-size:13px;color:#94a3b8;margin-top:5px;">week base engagement</div>
+        <div style="font-size:11px;color:#3a4268;margin-top:2px;">+4 weeks if extended</div>
+      </div>
+      <div class="stat">
+        <div style="font-size:34px;font-weight:800;color:var(--gold);line-height:1;">6+1</div>
+        <div style="font-size:13px;color:#94a3b8;margin-top:5px;">technical + functional units in scope</div>
+        <div style="font-size:11px;color:#3a4268;margin-top:2px;">2 parallel tech streams</div>
+      </div>
+      <div class="stat">
+        <div style="font-size:34px;font-weight:800;color:var(--gold);line-height:1;">Sep '26</div>
+        <div style="font-size:13px;color:#94a3b8;margin-top:5px;">target: first live teams onboarded</div>
+        <div style="font-size:11px;color:#3a4268;margin-top:2px;">This is the pre-stage</div>
+      </div>
+      <div class="stat">
+        <div style="font-size:34px;font-weight:800;color:var(--gold);line-height:1;">Daily</div>
+        <div style="font-size:13px;color:#94a3b8;margin-top:5px;">on-site at S Mitro Tower</div>
+        <div style="font-size:11px;color:#3a4268;margin-top:2px;">Near BTS, Bangkok</div>
+      </div>
+    </div>
+
+    <div class="callout" style="max-width:740px;display:flex;gap:16px;align-items:flex-start;">
+      <div style="font-size:26px;flex-shrink:0;margin-top:2px;">💡</div>
+      <div>
+        <div style="font-weight:700;color:var(--gold);font-size:13.5px;margin-bottom:8px;">The Single Most Important Mindset Shift</div>
+        <p style="color:#e2e8f0;font-size:14px;line-height:1.7;">
+          <strong>This is NOT a transformation. It is NOT a finished product.</strong> It's a technical exploration.
+          Discovering that something <em>doesn't work</em> is just as valuable as making it work —
+          as long as we document the blocker clearly.
+          The client loved this framing so much it was written explicitly:
+          <em style="color:var(--gold);">"Trying to AI-ify a process and it doesn't work — that is a success for this project."</em>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ CONTEXT ═══════════════════════════════════ -->
+<section id="context">
+  <div class="container">
+    <span class="label">Client &amp; Context</span>
+    <h2 class="title">Who, What &amp; Why</h2>
+    <p class="sub" style="max-width:580px;margin-bottom:44px;">The full picture before touching any tooling.</p>
+
+    <div class="g3" style="margin-bottom:32px;">
+      <div class="card" style="padding:24px;">
+        <div style="font-size:30px;margin-bottom:12px;">🏨</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:8px;">Who is Accor?</h3>
+        <p style="color:#94a3b8;font-size:13.5px;line-height:1.7;">
+          Global luxury hospitality group — Sofitel, Novotel, Ibis and 40+ other brands. Their
+          <strong style="color:#e2e8f0;">CD&amp;T (Corporate Digital &amp; Technology) / Software Factory</strong>
+          division is driving a large-scale AI transformation of software delivery across all product teams.
+        </p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <div style="font-size:30px;margin-bottom:12px;">🔄</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:8px;">What is happening?</h3>
+        <p style="color:#94a3b8;font-size:13.5px;line-height:1.7;">
+          Accor is embedding AI across <strong style="color:#e2e8f0;">every PDLC stage</strong> for multiple delivery teams.
+          First-wave team onboarding is targeted for <strong style="color:#e2e8f0;">September 2026</strong>.
+          Before that, they need evidence of what works, what breaks, and what needs more investment.
+        </p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <div style="font-size:30px;margin-bottom:12px;">⚡</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:8px;">Why this engagement exists?</h3>
+        <p style="color:#94a3b8;font-size:13.5px;line-height:1.7;">
+          Accor fears discovering blockers <em>while live teams are already in flight</em> — too late to fix.
+          This is the <strong style="color:#e2e8f0;">pre-stage</strong>: prove everything on a safe sandbox,
+          document every blocker, hand it over before transformation starts.
+        </p>
+      </div>
+    </div>
+
+    <div class="g2" style="margin-bottom:32px;">
+      <div class="card" style="padding:24px;">
+        <div style="font-size:30px;margin-bottom:12px;">🏢</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:8px;">Who is PALO IT?</h3>
+        <p style="color:#94a3b8;font-size:13.5px;line-height:1.7;">
+          Our company — the delivery partner. We deliver from <strong style="color:#e2e8f0;">Bangkok, Thailand</strong>,
+          working on-site at Accor's office daily (S Mitro Tower, near BTS).
+          Team: 1 Engagement Manager + 1 AI Lead + 1 AI Product Owner + 4 AI Engineers.
+        </p>
+      </div>
+      <div class="card" style="padding:24px;">
+        <div style="font-size:30px;margin-bottom:12px;">🎯</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:12px;">What does Accor expect?</h3>
+        <ul class="blist">
+          <li>"Prove it once, then it's repeatable for others" — build reusable artifacts, even if only tested on mock project</li>
+          <li>PDLC tooling treated as production-quality — even though the app itself is trivial</li>
+          <li>Outputs are starting points, not finished configs</li>
+          <li>Accor's people are not expected to learn prompt engineering here (that's the transformation phase)</li>
+          <li>Accor counterparts provide knowledge &amp; unblocking; PALO IT does the work</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px;">5 Outcomes Accor Will Claim by Sep 2026</h3>
+    <div class="g5">
+      <div class="card-e" style="padding:16px;">
+        <div style="font-size:22px;margin-bottom:8px;">🚧</div>
+        <p style="font-size:12.5px;color:#94a3b8;line-height:1.6;">"We know where the real blockers are — before they hit live teams"</p>
+      </div>
+      <div class="card-e" style="padding:16px;">
+        <div style="font-size:22px;margin-bottom:8px;">📊</div>
+        <p style="font-size:12.5px;color:#94a3b8;line-height:1.6;">"We have a realistic picture of AI's capabilities within our environment"</p>
+      </div>
+      <div class="card-e" style="padding:16px;">
+        <div style="font-size:22px;margin-bottom:8px;">📦</div>
+        <p style="font-size:12.5px;color:#94a3b8;line-height:1.6;">"We have first-draft configs transformation teams can use as a starting point"</p>
+      </div>
+      <div class="card-e" style="padding:16px;">
+        <div style="font-size:22px;margin-bottom:8px;">💡</div>
+        <p style="font-size:12.5px;color:#94a3b8;line-height:1.6;">"We know what needs more investment and what works well enough today"</p>
+      </div>
+      <div class="card-e" style="padding:16px;">
+        <div style="font-size:22px;margin-bottom:8px;">📅</div>
+        <p style="font-size:12.5px;color:#94a3b8;line-height:1.6;">"We can plan the transformation timeline with evidence, not assumptions"</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ APPROACH ═══════════════════════════════════ -->
+<section id="approach">
+  <div class="container">
+    <span class="label">Approach</span>
+    <h2 class="title">3-Phase Engagement Structure</h2>
+    <p class="sub" style="max-width:580px;margin-bottom:44px;">Each phase builds on the previous. Every unit's output is applied to the mock project continuously — S2 is an integration sprint, not a discovery sprint.</p>
+
+    <!-- 3 phases -->
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:40px;">
+      <div class="phase-card" style="min-width:240px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:8px;padding:6px 12px;font-weight:800;font-size:14px;color:#c4b5fd;">S1</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:#f1f5f9;">Initiation</div>
+            <div style="font-size:11px;color:#64748b;">1 week • Sprint Zero</div>
+          </div>
+        </div>
+        <ul class="blist">
+          <li>Say hello, validate all tool access</li>
+          <li>Define <strong style="color:#e2e8f0;">unit order</strong> with Accor (not pre-defined)</li>
+          <li>Confirm mock project is ready to use</li>
+          <li>Set up shared AI repository (prompts/agents/configs)</li>
+          <li>Agree KPIs &amp; success criteria per unit</li>
+        </ul>
+        <div class="callout" style="margin-top:14px;padding:10px 14px;">
+          <p style="font-size:12px;color:#e2e8f0;line-height:1.6;">Different from a traditional Sprint Zero — we're not setting up a project, we're setting up an AI exploration framework.</p>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;color:var(--gold);font-size:22px;flex-shrink:0;">→</div>
+
+      <div class="phase-card" style="min-width:280px;flex:2;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:6px 10px;font-weight:800;font-size:13px;color:#93c5fd;">T1–T12 + F</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:#f1f5f9;">Parallel Execution</div>
+            <div style="font-size:11px;color:#64748b;">6–10 weeks</div>
+          </div>
+        </div>
+        <div class="g2" style="gap:16px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#3a4268;margin-bottom:8px;">Tech Stream (×2)</div>
+            <ul class="blist">
+              <li>2 streams running <strong style="color:#e2e8f0;">simultaneously</strong></li>
+              <li>Each stream: 2 Devs FT, TL 40%, PO 10%</li>
+              <li>One unit per stream per 2 weeks</li>
+              <li>TL bridges both streams for consistency</li>
+              <li>Shared AI repo — no conflicting configs</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);margin-bottom:8px;">Functional Stream ⭐ Your Stream</div>
+            <ul class="blist">
+              <li>Runs <strong style="color:#e2e8f0;">in parallel</strong> with tech streams</li>
+              <li>PO 80% + TL 20%</li>
+              <li>4 weeks per functional unit</li>
+              <li>Fewer hands-on tasks, more stakeholder collaboration</li>
+              <li>Jira is the primary working surface</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout-info" style="margin-top:14px;padding:10px 14px;">
+          <p style="font-size:12px;color:#93c5fd;line-height:1.6;"><strong>Key rule:</strong> Every unit's output is applied to the mock project as it's completed. By S2, everything should already be integrated — the wrap-up sprint validates it all runs together.</p>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;color:var(--gold);font-size:22px;flex-shrink:0;">→</div>
+
+      <div class="phase-card" style="min-width:240px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.3);border-radius:8px;padding:6px 12px;font-weight:800;font-size:14px;color:var(--gold);">S2</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:#f1f5f9;">Wrap-Up</div>
+            <div style="font-size:11px;color:#64748b;">2 weeks • Full Team</div>
+          </div>
+        </div>
+        <ul class="blist">
+          <li>Run one full fake sprint: requirements → code → test → deploy → operate</li>
+          <li>Validate all units work <strong style="color:#e2e8f0;">together</strong> on mock project</li>
+          <li>Accor's people join to watch &amp; learn (handover by doing)</li>
+          <li>Final report: findings, metrics, what worked, what didn't</li>
+          <li>Handover package: configs, prompts, agents, quality gates</li>
+        </ul>
+        <div class="callout" style="margin-top:14px;padding:10px 14px;">
+          <p style="font-size:12px;color:#e2e8f0;line-height:1.6;">Simon's framing: "Better than documentation nobody reads — run 2 weeks together, show them how it works."</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Governance cadence -->
+    <h3 style="font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px;">Governance &amp; Coordination Cadence</h3>
+    <div class="g4">
+      <div class="card-e" style="padding:16px;">
+        <div style="font-size:20px;margin-bottom:8px;">📅</div>
+        <div style="font-weight:600;font-size:13px;color:#f1f5f9;margin-bottom:4px;">Daily Standup</div>
+        <p style="font-size:12px;color:#64748b;line-height:1.5;">Both tech streams + functional stream — on-site, on-time. First week especially: do not be late.</p>
+      </div>
+      <div class="card-e" style="padding:16px;">
+        <div style="font-size:20px;margin-bottom:8px;">🔄</div>
+        <div style="font-weight:600;font-size:13px;color:#f1f5f9;margin-bottom:4px;">Weekly Sync</div>
+        <p style="font-size:12px;color:#64748b;line-height:1.5;">EM + TL + PO — progress, blockers, dependencies. Ideally full team present.</p>
+      </div>
+      <div class="card-e" style="padding:16px;">
+        <div style="font-size:20px;margin-bottom:8px;">📊</div>
+        <div style="font-weight:600;font-size:13px;color:#f1f5f9;margin-bottom:4px;">Bi-Weekly Steering</div>
+        <p style="font-size:12px;color:#64748b;line-height:1.5;">With Accor leadership — progress review, risk review, mitigation decisions, unit re-prioritization.</p>
+      </div>
+      <div class="card-e" style="padding:16px;">
+        <div style="font-size:20px;margin-bottom:8px;">🗂️</div>
+        <div style="font-weight:600;font-size:13px;color:#f1f5f9;margin-bottom:4px;">Shared AI Repo</div>
+        <p style="font-size:12px;color:#64748b;line-height:1.5;">All prompts, agents &amp; configs pushed here immediately — separate from mock project, designed for reuse.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ PDLC MAP ═══════════════════════════════════ -->
+<section id="pdlc">
+  <div class="container">
+    <span class="label">PDLC Lifecycle</span>
+    <h2 class="title">AI Augmentation Across Every Stage</h2>
+    <p class="sub" style="max-width:580px;margin-bottom:12px;">Click a stage to filter the work units below to only those relevant to that PDLC stage.</p>
+    <p style="font-size:12px;color:#3a4268;margin-bottom:28px;">Gold = In Scope for this engagement</p>
+
+    <div id="pdlc-stages" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;"></div>
+
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <button onclick="clearStageFilter()" id="clear-stage-btn"
+        style="display:none;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid rgba(212,175,55,.3);background:rgba(212,175,55,.06);color:var(--gold);cursor:pointer;">
+        ✕ Clear stage filter
+      </button>
+      <span id="stage-filter-label" style="font-size:12px;color:#64748b;"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ WORK UNITS ═══════════════════════════════════ -->
+<section id="units" style="padding-top:0;border-top:none;">
+  <div class="container">
+    <span class="label">Work Units</span>
+    <h2 class="title">All 15 Units — Full Depth</h2>
+    <p class="sub" style="max-width:580px;margin-bottom:28px;">Every unit: purpose, what success looks like, expected outcomes, prerequisites, and exclusions.</p>
+
+    <!-- Filter bar -->
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+      <button class="fbtn factive" data-filter="all"     onclick="setFilter(this,'all')">All</button>
+      <button class="fbtn" data-filter="technical"       onclick="setFilter(this,'technical')">Technical (T)</button>
+      <button class="fbtn" data-filter="functional"      onclick="setFilter(this,'functional')">Functional (F)</button>
+      <button class="fbtn" data-filter="special"         onclick="setFilter(this,'special')">Initiation / Wrap-Up (S)</button>
+      <button class="fbtn" data-filter="scope"           onclick="setFilter(this,'scope')">⭐ In Scope Only</button>
+      <div style="margin-left:auto;">
+        <input id="usearch" type="text" placeholder="Search units…" oninput="applyFilters()">
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:#3a4268;margin-bottom:16px;">
+      Showing <span id="units-count" style="color:var(--gold);font-weight:600;"></span> units
+    </div>
+
+    <!-- Unit cards rendered by JS -->
+    <div id="units-grid"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ YOUR ROLE ═══════════════════════════════════ -->
+<section id="your-role">
+  <div class="container">
+    <span class="label">Your Role</span>
+    <h2 class="title">AI Product Owner — Functional Stream Lead</h2>
+    <p class="sub" style="max-width:620px;margin-bottom:32px;">
+      Simon's words in the kickoff: <em style="color:var(--gold);">"That one is for you, Mo."</em>
+      You own the functional stream — running in parallel with the tech streams for the full engagement duration.
+    </p>
+
+    <!-- Role overview -->
+    <div class="g2" style="margin-bottom:32px;">
+      <div class="card your-role-card" style="padding:24px;">
+        <div style="font-size:28px;margin-bottom:12px;">⚖️</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:12px;">Time Split</h3>
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:13px;color:#e2e8f0;font-weight:500;">Functional Units (F1/F2/F3)</span>
+            <span style="font-size:14px;font-weight:700;color:var(--gold);">80%</span>
+          </div>
+          <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+            <div style="background:var(--gold);height:100%;width:80%;border-radius:4px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:13px;color:#e2e8f0;font-weight:500;">Project Management &amp; Unblocking</span>
+            <span style="font-size:14px;font-weight:700;color:#93c5fd;">20%</span>
+          </div>
+          <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+            <div style="background:#3b82f6;height:100%;width:20%;border-radius:4px;"></div>
+          </div>
+        </div>
+        <p style="font-size:12.5px;color:#64748b;margin-top:14px;line-height:1.6;">
+          The 20% PM time means you're the liaison to both tech streams — removing blockers, communicating with Accor stakeholders, and managing sprint planning &amp; reporting.
+        </p>
+      </div>
+
+      <div class="card your-role-card" style="padding:24px;">
+        <div style="font-size:28px;margin-bottom:12px;">🤝</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:12px;">Key Interactions</h3>
+        <ul class="blist">
+          <li><strong style="color:#e2e8f0;">Accor BAs</strong> — requirements gathering, domain context, validate what AI extracted</li>
+          <li><strong style="color:#e2e8f0;">Accor POs</strong> — backlog, story creation, prioritization, product decisions</li>
+          <li><strong style="color:#e2e8f0;">Accor PMs / Delivery Leads</strong> — sprint planning, risk, forecasting</li>
+          <li><strong style="color:#e2e8f0;">AI Lead (Simon)</strong> — technical feasibility, 20% TL time on functional units</li>
+          <li><strong style="color:#e2e8f0;">Engagement Manager</strong> — escalations, governance, stakeholder alignment</li>
+        </ul>
+        <div class="callout" style="margin-top:14px;padding:10px 14px;">
+          <p style="font-size:12px;color:#e2e8f0;line-height:1.6;">Counterparts must be available <strong>minimum 3 days/week</strong>. If Accor PO involvement drops, the functional unit cannot be delivered — this is an explicit prerequisite.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- F1 / F2 / F3 comparison -->
+    <h3 style="font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:16px;">Functional Units — Side by Side</h3>
+    <div class="g3">
+      <div class="card" style="padding:22px;opacity:0.7;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <span class="badge b-func">F1</span>
+          <span style="font-weight:700;font-size:14px;color:#e2e8f0;">Business Requirements</span>
+        </div>
+        <p style="font-size:13px;color:#64748b;margin-bottom:12px;line-height:1.6;">AI-assisted extraction, structuring, and traceability of business requirements. Works with Accor BAs.</p>
+        <ul class="blist" style="font-size:12.5px;">
+          <li>Extract requirements from transcripts &amp; docs</li>
+          <li>AI-generated traceability matrix</li>
+          <li>Impact analysis on requirement change</li>
+        </ul>
+        <div style="margin-top:14px;font-size:12px;color:#3a4268;">Requires: Accor BA (min 3 days/week)</div>
+        <div style="margin-top:6px;" class="badge b-dur">4 weeks</div>
+      </div>
+
+      <div class="card your-role-card" style="padding:22px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <span class="badge b-func">F2</span>
+          <span style="font-weight:700;font-size:14px;color:#e2e8f0;">Product Management</span>
+          <span class="badge b-scope">In Scope</span>
+        </div>
+        <p style="font-size:13px;color:#94a3b8;margin-bottom:12px;line-height:1.6;">AI-powered product workflows in Jira: story generation, acceptance criteria, effort estimation, backlog prioritization. Works with Accor POs.</p>
+        <ul class="blist" style="font-size:12.5px;">
+          <li>Epic &amp; user story generation in Jira</li>
+          <li>AI-generated acceptance criteria &amp; test scenarios</li>
+          <li>Effort estimation from codebase complexity</li>
+          <li>Backlog prioritization recommendations</li>
+        </ul>
+        <div style="margin-top:14px;font-size:12px;color:#64748b;">Requires: Accor PO (min 3 days/week)</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="badge b-dur">4 weeks</span>
+          <span class="badge b-yours">⭐ Your Primary Unit</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px;opacity:0.7;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <span class="badge b-func">F3</span>
+          <span style="font-weight:700;font-size:14px;color:#e2e8f0;">Project Management</span>
+        </div>
+        <p style="font-size:13px;color:#64748b;margin-bottom:12px;line-height:1.6;">AI-driven PM workflows: sprint planning, automated status reports from Jira, risk identification, velocity forecasting. Works with Accor PMs.</p>
+        <ul class="blist" style="font-size:12.5px;">
+          <li>AI sprint planning recommendations</li>
+          <li>Automated Jira status reports</li>
+          <li>Risk &amp; early warning identification</li>
+          <li>Velocity forecasting &amp; delivery prediction</li>
+        </ul>
+        <div style="margin-top:14px;font-size:12px;color:#3a4268;">Requires: Accor PM (min 3 days/week)</div>
+        <div style="margin-top:6px;" class="badge b-dur">4 weeks</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:28px;display:flex;gap:14px;align-items:flex-start;">
+      <div style="font-size:22px;flex-shrink:0;">🗂️</div>
+      <div>
+        <div style="font-weight:700;color:var(--gold);font-size:13px;margin-bottom:6px;">Primary Working Surface: Jira</div>
+        <p style="color:#e2e8f0;font-size:13.5px;line-height:1.7;">
+          Simon's explicit framing: <em>"Business people don't look at code — they look at Jira."</em>
+          The functional stream's entire touchpoint with Accor is Jira-centric.
+          Your output won't be in a repo — it will be in Jira epics, stories, acceptance criteria, and backlog views that Accor POs and PMs can immediately recognize and validate.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ MOCK PROJECT ═══════════════════════════════════ -->
+<section id="mock-project">
+  <div class="container">
+    <span class="label">Mock Project</span>
+    <h2 class="title">The Sandbox We Work On</h2>
+    <p class="sub" style="max-width:600px;margin-bottom:32px;">
+      Accor sets up the mock project for us before T0 (PALO IT defined the requirements — 7 slides of specifications). If it's not ready in S1, we help them get it there. One mock project, shared by all streams.
+    </p>
+
+    <div class="g2" style="margin-bottom:28px;">
+      <div class="card" style="padding:24px;">
+        <div style="font-size:28px;margin-bottom:12px;">📋</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:10px;">What is it?</h3>
+        <p style="color:#94a3b8;font-size:13.5px;line-height:1.7;margin-bottom:14px;">
+          A simple <strong style="color:#e2e8f0;">"Team Directory / Internal Event Board"</strong> app —
+          minimal business logic (the functionality <em>literally doesn't matter</em>),
+          but maximum PDLC surface area to exercise all AI tooling against.
+        </p>
+        <ul class="blist">
+          <li>Frontend: list page, detail page, create form — 3 routes, basic CRUD</li>
+          <li>Backend: REST API, auth middleware, health endpoints</li>
+          <li>Database: 2 tables, relations, migration history</li>
+          <li>Feature flags: toggle list/card view + notifications feature</li>
+        </ul>
+      </div>
+      <div class="card" style="padding:24px;">
+        <div style="font-size:28px;margin-bottom:12px;">🏗️</div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:10px;">Architecture (3 Repos)</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+          <div class="card-e" style="padding:12px 16px;display:flex;align-items:center;gap:12px;">
+            <div style="font-size:18px;">🖥️</div>
+            <div>
+              <div style="font-weight:600;font-size:13px;color:#f1f5f9;">Frontend Repo</div>
+              <div style="font-size:12px;color:#64748b;">SPA — 5-8 components, 3 routes, 1 API service layer</div>
+            </div>
+          </div>
+          <div class="card-e" style="padding:12px 16px;display:flex;align-items:center;gap:12px;">
+            <div style="font-size:18px;">⚙️</div>
+            <div>
+              <div style="font-weight:600;font-size:13px;color:#f1f5f9;">Backend Repo</div>
+              <div style="font-size:12px;color:#64748b;">5–6 endpoints, 2 domain entities, auth, structured JSON logging</div>
+            </div>
+          </div>
+          <div class="card-e" style="padding:12px 16px;display:flex;align-items:center;gap:12px;">
+            <div style="font-size:18px;">☁️</div>
+            <div>
+              <div style="font-weight:600;font-size:13px;color:#f1f5f9;">Infra Repo</div>
+              <div style="font-size:12px;color:#64748b;">Terraform — 2 modules, 2 workspaces, cross-stack data source</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span class="badge b-tech">AWS ECS Fargate</span>
+          <span class="badge b-tech">RDS PostgreSQL</span>
+          <span class="badge b-tech">ALB</span>
+          <span class="badge b-tech">S3</span>
+          <span class="badge b-tech">CloudWatch</span>
+          <span class="badge b-tech">Splunk</span>
+          <span class="badge b-tech">GitFlow</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Complexity thresholds table -->
+    <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:14px;">Minimum Complexity Thresholds</h3>
+    <div style="overflow-x:auto;margin-bottom:28px;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="text-align:left;padding:8px 14px;color:#64748b;font-weight:600;">Area</th>
+            <th style="text-align:left;padding:8px 14px;color:#64748b;font-weight:600;">Minimum Requirement</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 14px;color:#e2e8f0;font-weight:500;">Frontend</td>
+            <td style="padding:10px 14px;color:#94a3b8;">5–8 components, 3 routes, 1 API service layer</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);">
+            <td style="padding:10px 14px;color:#e2e8f0;font-weight:500;">Backend</td>
+            <td style="padding:10px 14px;color:#94a3b8;">5–6 endpoints, 2 domain entities, auth middleware, error handling, structured logging</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 14px;color:#e2e8f0;font-weight:500;">Terraform</td>
+            <td style="padding:10px 14px;color:#94a3b8;">2 modules, 2 workspaces, 1 cross-stack data source</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);">
+            <td style="padding:10px 14px;color:#e2e8f0;font-weight:500;">CI/CD Pipeline</td>
+            <td style="padding:10px 14px;color:#94a3b8;">4 stages (build → test → scan → deploy), 1 quality gate</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;color:#e2e8f0;font-weight:500;">Dependencies</td>
+            <td style="padding:10px 14px;color:#94a3b8;">15–20 direct dependencies per repo (some outdated for T7)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Separate AI repo -->
+    <div class="callout" style="display:flex;gap:14px;align-items:flex-start;">
+      <div style="font-size:22px;flex-shrink:0;">🗄️</div>
+      <div>
+        <div style="font-weight:700;color:var(--gold);font-size:13px;margin-bottom:6px;">Separate AI Repository — Not the Mock Project</div>
+        <p style="color:#e2e8f0;font-size:13.5px;line-height:1.7;">
+          All prompts, agents, and configurations are stored in a <strong>dedicated AI repository</strong> — completely separate from the mock project.
+          This repo is designed to be reusable across real projects in the future.
+          Simon's clarification: <em>"The scope is not to reuse it everywhere yet — but it has to be built so it <strong>could</strong> be reused."</em>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ TEAM ═══════════════════════════════════ -->
+<section id="team">
+  <div class="container">
+    <span class="label">Team</span>
+    <h2 class="title">Team Composition &amp; Roles</h2>
+    <p class="sub" style="max-width:580px;margin-bottom:36px;">PALO IT delivers the work. Accor provides knowledge, access, and unblocking — not the other way around. Exception: S2 wrap-up, where Accor's people join to watch &amp; learn.</p>
+
+    <div class="g4" style="margin-bottom:32px;">
+      <div class="card-e" style="padding:20px;">
+        <div style="font-size:26px;margin-bottom:10px;">🎩</div>
+        <div style="font-weight:700;font-size:14px;color:#f1f5f9;margin-bottom:4px;">Engagement Manager</div>
+        <div style="font-size:11px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em;">Frederic B.</div>
+        <ul class="blist" style="font-size:12px;">
+          <li>Overall governance &amp; risk escalation</li>
+          <li>Customer relationship with Accor leadership</li>
+          <li>Steering committee facilitation</li>
+          <li>Commercial &amp; contractual oversight</li>
+        </ul>
+        <div style="margin-top:12px;font-size:11px;color:#3a4268;">Interacts with: Accor Leadership</div>
+      </div>
+
+      <div class="card-e" style="padding:20px;">
+        <div style="font-size:26px;margin-bottom:10px;">🧠</div>
+        <div style="font-weight:700;font-size:14px;color:#f1f5f9;margin-bottom:4px;">AI Lead</div>
+        <div style="font-size:11px;color:#93c5fd;margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em;">Simon S. — TL (40% per stream)</div>
+        <ul class="blist" style="font-size:12px;">
+          <li>Technical coordination across both streams</li>
+          <li>Architecture decisions for AI integration</li>
+          <li>Ensures shared patterns stay consistent</li>
+          <li>Reviews &amp; validates all technical deliverables</li>
+          <li>20% time on functional units with PO</li>
+        </ul>
+        <div style="margin-top:12px;font-size:11px;color:#3a4268;">Interacts with: Accor Engineering Lead, Architects</div>
+      </div>
+
+      <div class="card" style="padding:20px;border-color:rgba(212,175,55,.35);background:rgba(212,175,55,.03);">
+        <div style="font-size:26px;margin-bottom:10px;">⭐</div>
+        <div style="font-weight:700;font-size:14px;color:#f1f5f9;margin-bottom:4px;">AI Product Owner</div>
+        <div style="font-size:11px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em;">You — "Mo"</div>
+        <ul class="blist" style="font-size:12px;">
+          <li>Lead all functional units (80%)</li>
+          <li>Project management across all streams (20%)</li>
+          <li>Sprint planning, tracking, reporting, dependencies</li>
+          <li>Validate AI-augmented workflows with Accor stakeholders</li>
+        </ul>
+        <div style="margin-top:12px;font-size:11px;color:#3a4268;">Interacts with: Accor BAs, POs, PMs, Delivery Leads</div>
+      </div>
+
+      <div class="card-e" style="padding:20px;">
+        <div style="font-size:26px;margin-bottom:10px;">👷</div>
+        <div style="font-weight:700;font-size:14px;color:#f1f5f9;margin-bottom:4px;">AI Engineer × 4</div>
+        <div style="font-size:11px;color:#93c5fd;margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em;">2 per tech stream — full-time</div>
+        <ul class="blist" style="font-size:12px;">
+          <li>Hands-on implementation of technical work units</li>
+          <li>Configure AI tooling, prompts, agents, pipelines</li>
+          <li>Validate AI outputs against Accor standards</li>
+          <li>Document configurations &amp; implementation patterns</li>
+        </ul>
+        <div style="margin-top:12px;font-size:11px;color:#3a4268;">Interacts with: Devs, Platform Engineers, QA, Ops/SRE</div>
+      </div>
+    </div>
+
+    <div class="callout-info" style="display:flex;gap:14px;align-items:flex-start;">
+      <div style="font-size:20px;flex-shrink:0;">ℹ️</div>
+      <div>
+        <div style="font-weight:700;color:#93c5fd;font-size:13px;margin-bottom:6px;">Accor Counterparts — Knowledge Transfer, Not Co-Builders</div>
+        <p style="color:#e2e8f0;font-size:13.5px;line-height:1.7;">
+          Accor's people are there to provide context, unblock access, and validate outputs against their standards.
+          They are <strong>not</strong> there to learn prompt engineering or build with us (that's the transformation phase).
+          The exception is <strong>S2 wrap-up</strong> — that's when their full cross-functional team joins to watch, learn, and receive the handover.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ TIMELINE ═══════════════════════════════════ -->
+<section id="timeline">
+  <div class="container">
+    <span class="label">Timeline</span>
+    <h2 class="title">Engagement Schedule</h2>
+    <p class="sub" style="max-width:580px;margin-bottom:24px;">
+      Unit order within streams is decided collaboratively in S1 — not fixed at proposal stage.
+      Once a unit starts, it runs for its full 2 weeks.
+    </p>
+
+    <div style="display:flex;gap:8px;margin-bottom:28px;">
+      <button class="fbtn factive" id="tl-base" onclick="showTimeline('base')">Base — 9 Weeks</button>
+      <button class="fbtn" id="tl-ext" onclick="showTimeline('ext')">With Additional Package — 13 Weeks</button>
+    </div>
+
+    <!-- Base timeline -->
+    <div id="tl-view-base">
+      <div style="overflow-x:auto;">
+        <div style="min-width:660px;">
+          <!-- Week labels -->
+          <div style="display:grid;grid-template-columns:120px repeat(9,1fr);gap:2px;margin-bottom:4px;">
+            <div></div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 1</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 2</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 3</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 4</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 5</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 6</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 7</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 8</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 9</div>
+          </div>
+          <!-- S1 -->
+          <div style="display:grid;grid-template-columns:120px repeat(9,1fr);gap:2px;margin-bottom:6px;align-items:center;">
+            <div style="font-size:12px;color:#94a3b8;font-weight:500;padding-right:8px;">Initiation</div>
+            <div style="grid-column:2/3;" class="tl-bar" style="background:rgba(168,85,247,.25);color:#c4b5fd;">
+              <div class="tl-bar" style="background:rgba(168,85,247,.25);color:#c4b5fd;width:100%;">S1 — Sprint Zero</div>
+            </div>
+          </div>
+          <!-- Stream A -->
+          <div style="display:grid;grid-template-columns:120px repeat(9,1fr);gap:2px;margin-bottom:6px;align-items:center;">
+            <div style="font-size:12px;color:#94a3b8;font-weight:500;padding-right:8px;">Stream A</div>
+            <div style="grid-column:3/5;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;background:rgba(59,130,246,.2);color:#93c5fd;">T-unit (TBD)</div>
+            <div style="grid-column:5/7;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;background:rgba(59,130,246,.2);color:#93c5fd;">T-unit (TBD)</div>
+            <div style="grid-column:7/9;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;background:rgba(59,130,246,.2);color:#93c5fd;">T-unit (TBD)</div>
+          </div>
+          <!-- Stream B -->
+          <div style="display:grid;grid-template-columns:120px repeat(9,1fr);gap:2px;margin-bottom:6px;align-items:center;">
+            <div style="font-size:12px;color:#94a3b8;font-weight:500;padding-right:8px;">Stream B</div>
+            <div style="grid-column:3/5;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;background:rgba(59,130,246,.15);color:#7dd3fc;">T-unit (TBD)</div>
+            <div style="grid-column:5/7;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;background:rgba(59,130,246,.15);color:#7dd3fc;">T-unit (TBD)</div>
+            <div style="grid-column:7/9;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;background:rgba(59,130,246,.15);color:#7dd3fc;">T-unit (TBD)</div>
+          </div>
+          <!-- Functional -->
+          <div style="display:grid;grid-template-columns:120px repeat(9,1fr);gap:2px;margin-bottom:6px;align-items:center;">
+            <div style="font-size:12px;color:var(--gold);font-weight:600;padding-right:8px;">⭐ Functional</div>
+            <div style="grid-column:3/7;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;background:rgba(212,175,55,.2);color:var(--gold);">F2 — Product Management (4 weeks)</div>
+          </div>
+          <!-- S2 -->
+          <div style="display:grid;grid-template-columns:120px repeat(9,1fr);gap:2px;align-items:center;">
+            <div style="font-size:12px;color:#94a3b8;font-weight:500;padding-right:8px;">Wrap-Up</div>
+            <div style="grid-column:9/11;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;background:rgba(212,175,55,.25);color:var(--gold);">S2 — Wrap-Up</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px;padding:12px 16px;">
+        <p style="font-size:12.5px;color:#e2e8f0;line-height:1.6;">
+          <strong>Scope:</strong> 6 technical units (T4, T5, T7, T10, T11, T12) + 1 functional unit (F2).
+          Order within streams is defined in S1 based on Accor priorities and dependencies.
+          Unit selection can change before a unit starts — not during.
+        </p>
+      </div>
+    </div>
+
+    <!-- Extended timeline -->
+    <div id="tl-view-ext" style="display:none;">
+      <div style="overflow-x:auto;">
+        <div style="min-width:900px;">
+          <div style="display:grid;grid-template-columns:120px repeat(13,1fr);gap:2px;margin-bottom:4px;">
+            <div></div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 1</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 2</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 3</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 4</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 5</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 6</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 7</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 8</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 9</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 10</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 11</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 12</div>
+            <div style="text-align:center;font-size:11px;color:#3a4268;">Wk 13</div>
+          </div>
+          <div style="display:grid;grid-template-columns:120px repeat(13,1fr);gap:2px;margin-bottom:6px;align-items:center;">
+            <div style="font-size:12px;color:#94a3b8;font-weight:500;">Initiation</div>
+            <div style="grid-column:2/3;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:600;background:rgba(168,85,247,.25);color:#c4b5fd;">S1</div>
+          </div>
+          <div style="display:grid;grid-template-columns:120px repeat(13,1fr);gap:2px;margin-bottom:6px;align-items:center;">
+            <div style="font-size:12px;color:#94a3b8;font-weight:500;">Stream A</div>
+            <div style="grid-column:3/5;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.2);color:#93c5fd;">T-unit</div>
+            <div style="grid-column:5/7;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.2);color:#93c5fd;">T-unit</div>
+            <div style="grid-column:7/9;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.2);color:#93c5fd;">T-unit</div>
+            <div style="grid-column:9/11;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.15);color:#93c5fd;">T-unit</div>
+            <div style="grid-column:11/13;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.15);color:#93c5fd;">T-unit</div>
+          </div>
+          <div style="display:grid;grid-template-columns:120px repeat(13,1fr);gap:2px;margin-bottom:6px;align-items:center;">
+            <div style="font-size:12px;color:#94a3b8;font-weight:500;">Stream B</div>
+            <div style="grid-column:3/5;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.12);color:#7dd3fc;">T-unit</div>
+            <div style="grid-column:5/7;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.12);color:#7dd3fc;">T-unit</div>
+            <div style="grid-column:7/9;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.12);color:#7dd3fc;">T-unit</div>
+            <div style="grid-column:9/11;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.08);color:#7dd3fc;">T-unit</div>
+            <div style="grid-column:11/13;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(59,130,246,.08);color:#7dd3fc;">T-unit</div>
+          </div>
+          <div style="display:grid;grid-template-columns:120px repeat(13,1fr);gap:2px;margin-bottom:6px;align-items:center;">
+            <div style="font-size:12px;color:var(--gold);font-weight:600;">⭐ Functional</div>
+            <div style="grid-column:3/7;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(212,175,55,.2);color:var(--gold);">F2 — Product Management</div>
+            <div style="grid-column:7/11;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(212,175,55,.12);color:var(--gold);">Additional F-unit</div>
+          </div>
+          <div style="display:grid;grid-template-columns:120px repeat(13,1fr);gap:2px;align-items:center;">
+            <div style="font-size:12px;color:#94a3b8;font-weight:500;">Wrap-Up</div>
+            <div style="grid-column:13/15;height:30px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:600;background:rgba(212,175,55,.25);color:var(--gold);">S2</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:16px;padding:12px 16px;">
+        <p style="font-size:12.5px;color:#e2e8f0;line-height:1.6;">
+          <strong>Extended scope:</strong> 10 technical units + 2 functional units in 13 weeks.
+          Specific units for the additional package are selected at a steering committee before Week 6.
+          Accor must notify PALO IT and initiate contractualization by Week 5.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ TOOLS ═══════════════════════════════════ -->
+<section id="tools">
+  <div class="container">
+    <span class="label">Tools &amp; Ecosystem</span>
+    <h2 class="title">Everything in Accor's Toolchain</h2>
+    <p class="sub" style="max-width:580px;margin-bottom:36px;">No tool selection in scope — Accor has already chosen these. Our job is to make AI work within them.</p>
+
+    <div style="display:flex;flex-direction:column;gap:24px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3a4268;margin-bottom:10px;">AI Coding Tools</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="tool-card" style="border-color:rgba(212,175,55,.3);">
+            <span style="font-size:20px;">🤖</span>
+            <div>
+              <div style="font-weight:600;font-size:13px;color:#f1f5f9;">Cline (VS Code Extension)</div>
+              <div style="font-size:11.5px;color:#64748b;">Primary AI coding tool for Accor engineers</div>
+            </div>
+            <span class="badge b-scope" style="margin-left:auto;">Primary</span>
+          </div>
+          <div class="tool-card">
+            <span style="font-size:20px;">☁️</span>
+            <div>
+              <div style="font-weight:600;font-size:13px;color:#f1f5f9;">AccorGPT</div>
+              <div style="font-size:11.5px;color:#64748b;">Internal LiteLLM + Bedrock gateway — model router, not a custom model</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <span style="font-size:20px;">🧠</span>
+            <div>
+              <div style="font-weight:600;font-size:13px;color:#f1f5f9;">Claude Code</div>
+              <div style="font-size:11.5px;color:#64748b;">Terminal-based agentic AI coding</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3a4268;margin-bottom:10px;">AI Models (via AccorGPT)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="tool-card"><span style="font-size:18px;">✦</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">Claude Sonnet / Opus (Anthropic)</div><div style="font-size:11.5px;color:#64748b;">Via AWS Bedrock</div></div></div>
+          <div class="tool-card"><span style="font-size:18px;">✦</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">GPT-4+ (OpenAI)</div><div style="font-size:11.5px;color:#64748b;">Via AccorGPT gateway</div></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3a4268;margin-bottom:10px;">Source Control &amp; CI</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="tool-card"><span style="font-size:20px;">🦊</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">GitLab</div><div style="font-size:11.5px;color:#64748b;">All repos, CI/CD pipelines, MR workflow</div></div></div>
+          <div class="tool-card"><span style="font-size:20px;">🔍</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">SonarQube</div><div style="font-size:11.5px;color:#64748b;">Code quality gates, coverage thresholds</div></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3a4268;margin-bottom:10px;">Project &amp; Documentation</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="tool-card"><span style="font-size:20px;">📋</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">Jira</div><div style="font-size:11.5px;color:#64748b;">Epics, stories, bugs, backlog, sprint planning</div></div></div>
+          <div class="tool-card"><span style="font-size:20px;">📚</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">Confluence</div><div style="font-size:11.5px;color:#64748b;">Documentation publishing, ADRs, standards</div></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3a4268;margin-bottom:10px;">Cloud &amp; Infrastructure</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="tool-card"><span style="font-size:20px;">🟠</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">AWS</div><div style="font-size:11.5px;color:#64748b;">ECS Fargate, RDS PostgreSQL, ALB, S3, IAM — dev/int only</div></div></div>
+          <div class="tool-card"><span style="font-size:20px;">🏗️</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">Terraform</div><div style="font-size:11.5px;color:#64748b;">IaC — 2 workspaces, GitFlow CD pipeline</div></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3a4268;margin-bottom:10px;">Observability</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="tool-card"><span style="font-size:20px;">📡</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">Splunk</div><div style="font-size:11.5px;color:#64748b;">Structured JSON logs + alerting</div></div></div>
+          <div class="tool-card"><span style="font-size:20px;">☁️</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">AWS CloudWatch</div><div style="font-size:11.5px;color:#64748b;">Metrics, alarms, infra signals</div></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3a4268;margin-bottom:10px;">Security</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="tool-card"><span style="font-size:20px;">🔐</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">Checkmarx</div><div style="font-size:11.5px;color:#64748b;">SAST — auth flow, input handling, SQL-adjacent code</div></div></div>
+          <div class="tool-card"><span style="font-size:20px;">🛡️</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">Trivy</div><div style="font-size:11.5px;color:#64748b;">Container image scanning</div></div></div>
+          <div class="tool-card"><span style="font-size:20px;">🧿</span><div><div style="font-weight:600;font-size:13px;color:#f1f5f9;">Wiz</div><div style="font-size:11.5px;color:#64748b;">IaC &amp; cloud security scanning</div></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3a4268;margin-bottom:10px;">ITSM</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <div class="tool-card" style="border-color:rgba(239,68,68,.3);">
+            <span style="font-size:20px;">🎫</span>
+            <div>
+              <div style="font-weight:600;font-size:13px;color:#f1f5f9;">ServiceNow</div>
+              <div style="font-size:11.5px;color:#64748b;">Incident, change, problem, CMDB — covered in T10</div>
+            </div>
+            <div style="margin-left:auto;display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+              <span class="badge b-risk">⚠ Highest Risk</span>
+              <span style="font-size:10px;color:#3a4268;">New MCP server recently released</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ RISKS ═══════════════════════════════════ -->
+<section id="risks">
+  <div class="container">
+    <span class="label">Risks &amp; Assumptions</span>
+    <h2 class="title">What Could Go Wrong — And What Doesn't Apply</h2>
+    <p class="sub" style="max-width:600px;margin-bottom:36px;">This is a de-risking engagement by nature. A well-documented blocker is as valuable as a working configuration.</p>
+
+    <!-- Risk acceptance callout -->
+    <div class="callout-ok" style="margin-bottom:32px;display:flex;gap:14px;align-items:flex-start;">
+      <div style="font-size:22px;flex-shrink:0;">✅</div>
+      <div>
+        <div style="font-weight:700;color:#86efac;font-size:13px;margin-bottom:6px;">Risk Acceptance Statement</div>
+        <p style="color:#e2e8f0;font-size:13.5px;line-height:1.7;">
+          Some work units may conclude that AI capabilities don't yet work well enough, or require more investment than anticipated within Accor's environment.
+          <strong>These are valid success outcomes.</strong>
+          A unit that identifies and clearly documents a blocker is as successful as a unit that produces a working configuration.
+        </p>
+      </div>
+    </div>
+
+    <!-- Risks list -->
+    <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:14px;">Key Risks</h3>
+    <div class="card" style="padding:0 20px;" id="risks-list"></div>
+
+    <hr class="divider" style="margin:36px 0;">
+
+    <!-- Assumptions -->
+    <div class="g2">
+      <div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:14px;">Key Assumptions</h3>
+        <ul class="blist">
+          <li>PALO IT delivers from Thailand; on-site at Accor office daily</li>
+          <li>Accor provides forked, sanitized mock project before T0</li>
+          <li>All tool access (GitLab, Jira, AWS, ServiceNow, Splunk…) granted in first week (S1)</li>
+          <li>Named Accor counterparts are committed for the full engagement duration</li>
+          <li>AI tools are already selected — AccorGPT (LiteLLM + Bedrock) + Cline + Claude Code</li>
+          <li>AccorGPT is operational and accessible from Day 1</li>
+          <li>AI model capabilities are current-generation (Claude Sonnet/Opus, GPT-4+) — no fine-tuning required</li>
+          <li>Mock project business logic stays simple; complexity is in PDLC flow, not the app</li>
+          <li>Accor provides existing standards/conventions documentation for each PDLC stage</li>
+          <li>No production deployment or production data access required</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:14px;">What is Explicitly Excluded</h3>
+        <ul class="blist">
+          <li>Production deployment or production data access</li>
+          <li>Tool selection or vendor evaluation</li>
+          <li>Custom AI model training or fine-tuning</li>
+          <li>Organizational transformation or team restructuring</li>
+          <li>Full-scale rollout to Accor delivery teams (post-engagement)</li>
+          <li>Integration with every tool in Accor landscape</li>
+          <li>Performance/load testing, penetration testing, compliance certification</li>
+          <li>Third-party tool procurement or licensing management</li>
+          <li>Delivery of any unit without active Accor counterpart involvement</li>
+          <li>Guaranteed productivity gains — this is an exploratory engagement</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════════ -->
+<footer style="border-top:1px solid var(--border);padding:32px 0;margin-top:40px;">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="background:var(--gold);color:#0f1528;font-weight:800;font-size:12px;padding:4px 8px;border-radius:5px;">ACCOR</div>
+      <span style="color:#3a4268;font-size:12.5px;">AI PDLC Tech Backbone — Project Onboarding Guide</span>
+    </div>
+    <div style="font-size:12px;color:#3a4268;">
+      Contact: Frederic Bernaroyat — fbernaroyat@palo-it.com — +66 805144156
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════ JAVASCRIPT ═══════════════════════════════════ -->
+<script>
+// ──────────────────────────────────── DATA ────────────────────────────────────
+
+const PDLC_STAGES = [
+  { id:'requirements',  label:'Requirements',     emoji:'📋', units:['F1','F2','F3'], inScope:true  },
+  { id:'architecture',  label:'Architecture',     emoji:'🏗️', units:['T9'],          inScope:false },
+  { id:'development',   label:'Development',      emoji:'💻', units:['T1'],          inScope:false },
+  { id:'code-review',   label:'Code Review',      emoji:'🔍', units:['T2'],          inScope:false },
+  { id:'testing',       label:'Testing',          emoji:'🧪', units:['T3'],          inScope:false },
+  { id:'security',      label:'Security',         emoji:'🔒', units:['T7'],          inScope:true  },
+  { id:'cicd',          label:'CI/CD',            emoji:'⚙️', units:['T12'],         inScope:true  },
+  { id:'release',       label:'Release & Deploy', emoji:'🚀', units:['T4'],          inScope:true  },
+  { id:'infra',         label:'Infrastructure',   emoji:'☁️', units:['T11'],         inScope:true  },
+  { id:'monitoring',    label:'Monitoring',       emoji:'📊', units:['T5'],          inScope:true  },
+  { id:'itsm',          label:'ITSM',             emoji:'🎫', units:['T10'],         inScope:true  },
+  { id:'maintenance',   label:'Maintenance',      emoji:'🔧', units:['T6','T8'],     inScope:false },
+];
+
+const UNITS = [
+  // ── SPECIAL ──────────────────────────────────────────────────────────────────
+  {
+    id:'S1', type:'special', duration:'1 week', inScope:true, yourStream:true, highRisk:false,
+    title:'Initiation', subtitle:'Sprint Zero',
+    stages:[],
+    purpose:'Onboard the full team, align with Accor on priorities, validate all environment access, map PDLC stages and toolchain, define unit order and success criteria. S1 is "Sprint Zero" — but different from traditional: we\'re not setting up a product project, we\'re setting up an AI exploration framework.',
+    success:'By end of week 1 we can say: unit order is agreed, all tool access is confirmed or a workaround is documented, the mock project structure is validated, the shared AI repository is set up, and success criteria per unit are agreed with Accor.',
+    mustHaves:[
+      'Engagement plan with confirmed scope and prioritized unit backlog',
+      'Prerequisites register (tool access, accounts, environments)',
+      'PDLC stage mapping validated against Accor landscape documentation',
+      'Risk-based prioritization of subsequent units',
+      'Success criteria and measurable KPIs per unit',
+      'Multi-repo complexity assessment: repositories, languages, dependencies, AI context coherence risk',
+    ],
+    niceToHaves:[
+      'Baseline measurements per KPI (before AI augmentation)',
+      'Preliminary gap analysis of AI integration points',
+    ],
+    prereqs:[
+      'PALO IT team accounts + tool access granted',
+      'Named Accor counterparts available for daily collaboration',
+      'Access to PDLC documentation and tool landscape',
+      'Accor leadership available for prioritization workshop',
+    ],
+    exclusions:[
+      'No hands-on technical implementation or tool configuration',
+      'No code changes or prompt creation',
+      'Cannot be delivered if Accor counterparts are unavailable during the week',
+    ],
+    resources:'1 PO, 1 Tech Lead, 4 Developers — full-time — 1 week',
+  },
+  {
+    id:'S2', type:'special', duration:'2 weeks', inScope:true, yourStream:true, highRisk:false,
+    title:'Wrap-Up', subtitle:'Integration Sprint + Handover',
+    stages:[],
+    purpose:'Co-run the mock project for one full sprint using all AI-augmented PDLC tools from every completed unit. Validate all units work together without conflicts. Deliver the final handover package. This is NOT new discovery — by this point, every unit\'s output should already be applied to the mock project.',
+    success:'All completed units work together on the mock project. We have run at least one full cycle: requirements → code → test → deploy → monitor. Accor\'s people participated in the sprint and received a handover package they can use as a starting point.',
+    mustHaves:[
+      'Full sprint execution with AI-augmented PDLC (requirements → code → test → deploy → operate)',
+      'Indicative end-to-end cycle timing and qualitative improvement evidence',
+      'Execution report: findings, metrics, what worked, what did not',
+      'Final handover package (configurations, prompts, agents, quality gates)',
+      'Recommendations for full-scale rollout (input to transformation phase 2)',
+    ],
+    niceToHaves:[
+      'Knowledge transfer sessions with Accor teams',
+      'Workflow video recordings for training',
+      'Maturity assessment per PDLC stage with improvement roadmap',
+    ],
+    prereqs:[
+      'All units completed or explicitly descoped',
+      'Forked mock project fully set up with all integrations',
+      'Full Accor cross-functional team availability for 2-week sprint',
+      'Accor leadership available for sprint review and final report validation',
+    ],
+    exclusions:[
+      'New feature development or tool exploration',
+      'Organizational change management',
+      'Contract negotiations for phase 2',
+      'Sprint cannot run without Accor team participation',
+    ],
+    resources:'1 PO, 1 Tech Lead, 4 Developers — full-time — 2 weeks',
+  },
+  // ── TECHNICAL ────────────────────────────────────────────────────────────────
+  {
+    id:'T1', type:'technical', duration:'2 weeks', inScope:false, yourStream:false, highRisk:false,
+    title:'AI-Augmented Code Generation', subtitle:'',
+    stages:['development'],
+    purpose:'Define and operationalize AI-assisted coding workflow using Accor\'s toolchain (Cline, AccorGPT, Claude Code). Create coding standards, prompt libraries, and validate multi-repo context coherence across all three repositories.',
+    success:'A developer using Cline/AccorGPT on the mock project gets consistent, standards-compliant code suggestions across all three repos. A prompt library for common Accor patterns (CRUD, API integration, error handling) exists and works in context.',
+    mustHaves:[
+      'Documented AI-assisted coding workflow',
+      'Coding standards/conventions enforced through prompts/context files',
+      'Prompt library for common Accor patterns (CRUD, API integration, error handling)',
+      'Multi-repo context validation across scoped repositories',
+    ],
+    niceToHaves:['Custom agent definitions for Accor architectural patterns','Developer experience survey'],
+    prereqs:['S1 completed','Forked mock project available','Cline / AccorGPT / Claude Code configured','Accor coding standards documentation provided','Accor engineering lead available (min 2 days/week)'],
+    exclusions:['Code review automation (T2)','Test generation (T3)','Tool selection — already selected','Production deployment'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T2', type:'technical', duration:'2 weeks', inScope:false, yourStream:false, highRisk:false,
+    title:'AI-Augmented Code Review', subtitle:'',
+    stages:['code-review'],
+    purpose:'Set up AI-assisted code review in GitLab merge request workflow with automated suggestions, quality gates, and standards enforcement.',
+    success:'When a developer opens an MR on the mock project, an AI agent automatically reviews it, flags standard violations, and suggests improvements — all within the GitLab MR interface, without manual intervention.',
+    mustHaves:['AI-powered code review integrated in GitLab MR workflow','Quality gates for coding standards','Configuration documentation for review agents'],
+    niceToHaves:['Auto-fix suggestions for common issues','SonarQube integration for AI-reviewed quality thresholds'],
+    prereqs:['T1 completed','Forked mock project available','GitLab CI/CD admin access','SonarQube access','Accor DevOps engineer (min 2 days/week)'],
+    exclusions:['Code generation (T1)','Security-specific scanning (T7)','Manual review process redesign'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T3', type:'technical', duration:'2 weeks', inScope:false, yourStream:false, highRisk:false,
+    title:'AI-Augmented Testing & Quality', subtitle:'',
+    stages:['testing'],
+    purpose:'Embed AI into the test stage: automated test generation (unit/integration/E2E), coverage analysis, gap detection, and CI triggers on merge requests.',
+    success:'The mock project has AI-generated unit tests for both frontend and backend. Coverage analysis runs automatically in CI on each MR. A coverage gap report identifies untested code paths.',
+    mustHaves:['AI-generated unit tests for frontend and backend','CI integration (test generation triggered on MR)','Coverage analysis and gap report'],
+    niceToHaves:['AI-generated E2E tests (Playwright)','AI-assisted test maintenance on code changes','BrowserStack/XRay integration evaluation'],
+    prereqs:['S1 completed','Forked mock project available','GitLab CI access','Playwright / SonarQube / XRay access','Accor QA lead (min 1 day/week)'],
+    exclusions:['Performance/load testing','Manual QA process redesign','Test environment provisioning'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T4', type:'technical', duration:'2 weeks', inScope:true, yourStream:false, highRisk:false,
+    title:'AI-Augmented Release & Deploy', subtitle:'',
+    stages:['release'],
+    purpose:'Embed AI into release/deployment orchestration using Accor\'s GitFlow-based Terraform CD pipeline. Covers pre-deploy checks, go/no-go signals, feature flag orchestration, rollback recommendations, and release notes generation from deployment diffs.',
+    success:'AI analyzes a deployment diff on the mock project and produces: a go/no-go signal with reasoning, a release notes draft, and a rollback recommendation if deployment fails. Feature flags can be toggled and validated consistently across dev/int environments.',
+    mustHaves:[
+      'AI-assisted deployment configurations integrated with Accor Terraform CD pipeline',
+      'AI-driven release workflow (pre-deploy checks, approval recommendations, go/no-go signals)',
+      'AI-assisted rollback decision automation',
+      'Feature-flipping enablement and validation across environments',
+      'Release notes generation from deployment diff',
+    ],
+    niceToHaves:['CMDB (ServiceNow) integration for change requests and release tracking','Canary/blue-green deployment recommendations','Deployment history analysis for failure patterns'],
+    prereqs:['S1 completed','Forked mock project available','Access to Accor Terraform CD pipeline with deployment permissions','AWS non-production access (dev/int)','Feature flag tool access','Accor Platform Engineering (min 3 days/week)'],
+    exclusions:['Production deployment','Terraform module authoring (T11)','CI/CD pipeline creation (T12)','Landing zone changes','Network/VPN changes'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T5', type:'technical', duration:'2 weeks', inScope:true, yourStream:false, highRisk:false,
+    title:'AI-Augmented Monitoring & Alerting', subtitle:'',
+    stages:['monitoring'],
+    purpose:'Embed AI into detection and alerting: anomaly detection, alert enrichment with deployment/commit context, noise reduction through correlation, and SLO-based threshold alerting using Splunk and CloudWatch.',
+    success:'When the mock project\'s failure simulation triggers (e.g. forced DB timeout), an AI-enriched alert fires in Splunk/CloudWatch with: what happened, what was recently deployed, and the SLO impact. Correlated/duplicate alerts are filtered to reduce noise.',
+    mustHaves:[
+      'AI-augmented anomaly detection and incident identification (Splunk + CloudWatch)',
+      'Automated alert enrichment with deployment/commit context',
+      'Alert noise reduction via filtering/correlation',
+      'SLO-based alerting when error budgets are at risk',
+    ],
+    niceToHaves:['Zabbix/ITOM correlation','Slack webhook integration for AI-enriched notifications','Predictive alerting from leading indicators'],
+    prereqs:['S1 completed','Forked mock project deployed to AWS dev/int','Splunk/O11Y + CloudWatch write access','Monitoring dashboard access','Accor Ops/SRE (min 3 days/week)'],
+    exclusions:['Bug triage/fix workflows (T6)','ServiceNow integration (T10)','Security event monitoring (T7)'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T6', type:'technical', duration:'2 weeks', inScope:false, yourStream:false, highRisk:false,
+    title:'AI-Augmented Maintenance & Bug Management', subtitle:'',
+    stages:['maintenance'],
+    purpose:'Embed AI in the bug lifecycle and maintenance workflow: automated triage in Jira, requests for missing reproduction info, code-level root cause identification, and AI-suggested fixes for simple/recurring patterns.',
+    success:'When a bug is created in Jira for the mock project, AI automatically classifies priority, flags missing reproduction steps, and links to recent code changes. For a known pattern, AI suggests a fix for human review.',
+    mustHaves:[
+      'AI-powered Jira bug triage (priority/classification/labeling)',
+      'Automated requests for missing reproduction info',
+      'Code-level root cause identification from bug descriptions + recent changes',
+      'AI-suggested fixes for simple/recurring patterns (human-reviewed)',
+    ],
+    niceToHaves:['Recurring bug pattern detection','Toil identification and automation recommendations','Technical debt prioritization'],
+    prereqs:['S1 completed','T5 completed (monitoring must be in place)','Forked mock project deployed','Jira automation permissions','Accor dev team (min 2 days/week)','Historical bug data access'],
+    exclusions:['Monitoring/alerting setup (T5)','ServiceNow ITSM management (T10)','Security incident response (T7)','On-call rotation redesign'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T7', type:'technical', duration:'2 weeks', inScope:true, yourStream:false, highRisk:false,
+    title:'AI-Augmented Security & Compliance', subtitle:'',
+    stages:['security'],
+    purpose:'Embed AI in PDLC security checks: scan interpretation, vulnerability-to-fix suggestions inline in merge requests, compliance documentation, and policy-as-code validation using Checkmarx (SAST), Trivy, and Wiz.',
+    success:'When an MR is opened on the mock project, AI interprets Checkmarx/Trivy findings, prioritizes by severity, and suggests remediation steps inline. The 3–5 intentionally planted security issues are detected and correctly triaged.',
+    mustHaves:[
+      'AI-assisted scan interpretation (Checkmarx, Trivy, Wiz) with prioritized remediation',
+      'Automated vulnerability-to-fix suggestions in MRs',
+      'Security findings report with AI-recommended remediations',
+      'Policy-as-code validation against security rules',
+    ],
+    niceToHaves:['AI-generated compliance documentation','DefectDojo integration','Imperva WAF event correlation'],
+    prereqs:['S1 completed','Forked mock project with planted security findings','Checkmarx/Trivy/Wiz access','Accor Cybersecurity team (min 3 days/week)','Existing security/compliance policies documented'],
+    exclusions:['Penetration testing','Security architecture redesign','Vault secrets management setup','Compliance certification'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T8', type:'technical', duration:'2 weeks', inScope:false, yourStream:false, highRisk:false,
+    title:'AI-Augmented Code Documentation', subtitle:'',
+    stages:['maintenance'],
+    purpose:'Embed AI in documentation workflows: technical documentation generated from codebase, API docs, ADR generation, Confluence publishing integration, and freshness validation for stale documentation.',
+    success:'The mock project has AI-generated architecture docs, API reference, and at least 2 ADRs published to Confluence. A freshness check flags any document that is out of sync with recent code changes.',
+    mustHaves:[
+      'AI-generated technical documentation from codebase (architecture, APIs, modules)',
+      'AI-generated ADRs from code changes and design decisions',
+      'Confluence integration for automated publishing',
+      'Documentation freshness validation (stale doc detection)',
+    ],
+    niceToHaves:['AI-generated onboarding docs','Automated changelog generation from MRs','Diagram generation (architecture/sequence/flow)','Documentation quality gates in CI'],
+    prereqs:['S1 completed','Forked mock project available','Confluence publishing access','Existing Accor documentation standards/templates','Accor documentation owner (min 1 day/week)'],
+    exclusions:['User-facing product documentation','Training material creation','Knowledge transfer sessions (covered in S2)'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T9', type:'technical', duration:'2 weeks', inScope:false, yourStream:false, highRisk:false,
+    title:'AI-Augmented Architecture & Technical Design', subtitle:'',
+    stages:['architecture'],
+    purpose:'Embed AI in design-time architecture workflows: solution design from requirements, cross-repo impact analysis, design pattern recommendations aligned to Accor conventions, and architecture decision support with precedents and trade-offs.',
+    success:'Given a new requirement for the mock project, AI produces: a solution design outline, an impact analysis across all 3 repos, and a pattern recommendation with trade-offs — aligned to Accor architecture conventions.',
+    mustHaves:[
+      'AI-assisted solution design workflow from requirements',
+      'AI-powered impact analysis across repositories for proposed changes',
+      'Design pattern recommendations aligned to Accor conventions',
+      'Architecture decision support (precedents, trade-offs, risks)',
+    ],
+    niceToHaves:['Technical debt identification through architecture analysis','LeanIX/CMDB integration','AI-assisted technology choice evaluation','Design review automation'],
+    prereqs:['S1 completed','Forked mock project available','Confluence/Notion access','Existing Accor architecture standards','Accor Solution Architect or Tech Lead (min 2 days/week)'],
+    exclusions:['Redesign of Accor production architecture','Enterprise architecture governance changes','LeanIX landscape-level modeling'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T10', type:'technical', duration:'2 weeks', inScope:true, yourStream:false, highRisk:true,
+    title:'AI-Augmented ITSM & Incident Management', subtitle:'',
+    stages:['itsm'],
+    purpose:'Embed AI in the ITSM/incident flow via ServiceNow: AI-assisted incident creation from Splunk/CloudWatch alerts, automated triage (severity/category/routing), change request generation from resolved incidents, and knowledge base article generation. NOTE: ServiceNow recently released an MCP server — this opens doors previously considered blocked.',
+    success:'A simulated infrastructure incident (triggered via failure simulation on mock project) automatically creates an enriched ServiceNow incident with correct severity, category, and routing. After resolution, AI generates a draft KB article.',
+    mustHaves:[
+      'AI-assisted incident creation from Splunk/CloudWatch alerts to ServiceNow',
+      'Automated incident triage (severity, category, routing)',
+      'AI-generated change requests from resolved incidents',
+      'Knowledge base article generation from resolved incidents',
+    ],
+    niceToHaves:['Root-cause correlation into ServiceNow problem records','CMDB enrichment suggestions','Automated post-incident review generation','Predictive incident detection'],
+    prereqs:['S1 completed','Forked mock project available','ServiceNow access (incident/change/problem/CMDB)','T5 completed or in progress','Accor ITSM/ServiceNow team (min 2 days/week)','Incident categorization/routing rules documented'],
+    exclusions:['ServiceNow platform customization/development','ITSM process redesign/governance changes','CMDB data quality remediation','Non-ServiceNow ITSM integrations'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T11', type:'technical', duration:'2 weeks', inScope:true, yourStream:false, highRisk:false,
+    title:'AI-Augmented Infrastructure Provisioning', subtitle:'',
+    stages:['infra'],
+    purpose:'Embed AI in IaC authoring and validation: Terraform module generation from architecture intent, IaC review against Accor conventions and security policies, cross-stack dependency analysis before merge, and Terraform apply troubleshooting.',
+    success:'Given an architecture requirement (e.g. "add an RDS read replica"), AI generates a Terraform module aligned to Accor naming conventions and security policies, flags cross-stack dependency issues, and explains a Terraform plan error.',
+    mustHaves:[
+      'AI-assisted Terraform module generation from requirements/architecture intent',
+      'AI-powered IaC review against Accor conventions, security policies, naming standards',
+      'Cross-stack dependency analysis before merge',
+      'Terraform apply troubleshooting (dependency cycles, provider conflicts, state lock issues)',
+    ],
+    niceToHaves:['IaC refactoring recommendations','Shift-left cost awareness','State surgery assistance with safety checks','AI-generated infrastructure documentation'],
+    prereqs:['S1 completed','Forked mock project available','AWS dev/int access with Terraform state visibility','Existing Accor Terraform modules/conventions','Accor Platform Engineering/CloudOps (min 2 days/week)'],
+    exclusions:['Production infrastructure changes','AWS account/org setup','FinOps tool implementation','Network architecture redesign','Drift detection (handled natively by Terraform plan)'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  {
+    id:'T12', type:'technical', duration:'2 weeks', inScope:true, yourStream:false, highRisk:false,
+    title:'AI-Augmented CI/CD Pipeline Generation & Quality Gates', subtitle:'',
+    stages:['cicd'],
+    purpose:'Embed AI in CI/CD pipeline-as-code lifecycle: generation from project structure, quality gate definition based on codebase analysis, pipeline failure diagnosis, optimization recommendations, and drift detection versus Accor standards.',
+    success:'Given the mock project structure, AI generates a valid .gitlab-ci.yml for both frontend and backend, defines appropriate quality gates, diagnoses a simulated pipeline failure with root cause and fixes, and flags drift from Accor pipeline standards.',
+    mustHaves:[
+      'AI-assisted pipeline generation from project structure',
+      'AI-defined quality gates based on codebase analysis (coverage, complexity, duplication)',
+      'Pipeline failure diagnosis from logs with root cause and suggested fixes',
+      'Pipeline optimization recommendations (slow stages, redundancy, caching)',
+      'Pipeline drift detection versus Accor standards',
+    ],
+    niceToHaves:['Pipeline template library for common Accor project types (Java, Node.js, Python)','Quality gate evolution over maturity','Cross-pipeline dependency analysis across repositories'],
+    prereqs:['S1 completed','Forked mock project available','GitLab CI/CD editing access','SonarQube access','Existing pipeline templates/standards from Accor','Accor DevOps/CI-CD team (min 2 days/week)'],
+    exclusions:['GitLab platform administration/runner management','SonarQube server configuration','Production pipeline execution','Build tool migration'],
+    resources:'PO 10%, TL 40%, 2 Developers full-time — 2 weeks',
+  },
+  // ── FUNCTIONAL ───────────────────────────────────────────────────────────────
+  {
+    id:'F1', type:'functional', duration:'4 weeks', inScope:false, yourStream:true, highRisk:false,
+    title:'AI-Augmented Business Requirements Gathering', subtitle:'',
+    stages:['requirements'],
+    purpose:'Embed AI in requirements elicitation: extraction from transcripts/documents, structuring into a traceability repository, AI-powered change impact analysis, and quality validation (completeness/consistency/testability).',
+    success:'Given a batch of Accor business documents or meeting transcripts, AI extracts and structures requirements, links them in a traceability matrix, and flags gaps. When a requirement changes, AI identifies which other requirements and downstream components are impacted.',
+    mustHaves:[
+      'AI-assisted requirements extraction from transcripts/documents',
+      'Structured requirements repository with AI-generated traceability matrix',
+      'AI-powered impact analysis for requirement changes',
+      'Requirements quality validation (completeness/consistency/testability)',
+    ],
+    niceToHaves:['AI-generated acceptance criteria','AI-generated meeting minutes / stakeholder summaries','Requirements-to-code traceability proof of concept'],
+    prereqs:['S1 completed','Forked mock project available','Jira/Confluence access','Sample requirements documentation from Accor','Accor BA or PO engagement (min 3 days/week)'],
+    exclusions:['Real-project requirements gathering','Business domain expertise provision','Product strategy/roadmap definition (F2)','Cannot deliver without Accor BA involvement'],
+    resources:'PO 80%, TL 20% — 4 weeks',
+  },
+  {
+    id:'F2', type:'functional', duration:'4 weeks', inScope:true, yourStream:true, highRisk:false,
+    title:'AI-Augmented Product Management', subtitle:'',
+    stages:['requirements'],
+    purpose:'Embed AI in product management workflows: AI-assisted epic/story generation in Jira from product requirements, acceptance criteria and test scenario generation, effort estimation from codebase complexity analysis, and backlog prioritization recommendations. Primary functional unit in scope.',
+    success:'Given a product requirement, AI generates a structured epic with user stories, acceptance criteria, and an effort estimate in Jira. Backlog prioritization recommendations are explainable and usable by Accor POs without needing to understand the AI underneath.',
+    mustHaves:[
+      'AI-assisted epic/story generation in Jira from product requirements',
+      'AI-generated acceptance criteria and test scenarios from stories',
+      'AI-powered effort estimation from codebase complexity analysis',
+      'AI-assisted backlog prioritization recommendations',
+    ],
+    niceToHaves:['AI-assisted roadmap scenario modeling','Product analytics interpretation and insight generation','Automated dependency mapping across epics/features'],
+    prereqs:['S1 completed','Forked mock project available','Jira/Confluence access','Sample product backlog from Accor','Accor Product Owner engagement (min 3 days/week)'],
+    exclusions:['Project management workflows (F3)','Business requirements elicitation (F1)','Product strategy definition or real product decisions','Cannot deliver without Accor PO involvement'],
+    resources:'PO 80%, TL 20% — 4 weeks',
+  },
+  {
+    id:'F3', type:'functional', duration:'4 weeks', inScope:false, yourStream:true, highRisk:false,
+    title:'AI-Augmented Project Management', subtitle:'',
+    stages:['requirements'],
+    purpose:'Embed AI in project management workflows: AI-assisted sprint planning, automated status report generation from Jira data, AI-powered risk identification and early warnings, and velocity forecasting for delivery date predictions.',
+    success:'AI generates a sprint plan recommendation given backlog and team capacity. Status reports are auto-generated from Jira data. Risk flags surface before blockers become critical. Velocity forecasting provides delivery date predictions with confidence ranges.',
+    mustHaves:[
+      'AI-assisted sprint planning (story selection, capacity recommendations)',
+      'Automated status report generation from Jira data',
+      'AI-powered risk identification and early warnings',
+      'Velocity forecasting and delivery date prediction',
+    ],
+    niceToHaves:['AI-generated stakeholder communication drafts','Resource allocation optimization suggestions','Retrospective insight extraction and action tracking'],
+    prereqs:['S1 completed','Forked mock project available','Jira/Confluence/MS Teams access','Historical project delivery data from Accor','Accor PM engagement (min 3 days/week)'],
+    exclusions:['Product management workflows (F2)','Actual project delivery or team management','PMO process redesign','Cannot deliver without Accor PM involvement'],
+    resources:'PO 80%, TL 20% — 4 weeks',
+  },
+];
+
+const RISKS = [
+  { title:'Accor counterpart unavailability', l:'High', i:'High',
+    detail:'Explicit prerequisite per unit. Units are paused or deprioritized if counterparts are unavailable. Named counterparts must be committed before engagement starts — this is contractual.' },
+  { title:'ServiceNow integration complexity (T10)', l:'High', i:'High',
+    detail:'Previously near-impossible (poor API, no MCP server). ServiceNow recently released an MCP server which may unlock new integrations. Mitigation: scope must-haves to incident creation + triage only; deprioritize if access is delayed. Unit can be descoped if ServiceNow team is unavailable.' },
+  { title:'Security team engagement constraints (T7)', l:'High', i:'Medium',
+    detail:'If Cybersecurity team is unavailable, T7 cannot proceed. Reduce must-haves to scan interpretation + fix suggestions. Move policy-as-code to nice-to-have. Unit is postponed if team is not engaged.' },
+  { title:'Late T0 start shrinking the timeline', l:'Medium', i:'Medium',
+    detail:'Adjust unit count if start is delayed; prioritize highest-risk units first. Use S1 to resequence. Fixed-price contract is unchanged.' },
+  { title:'Multi-repo AI context limitations (T1)', l:'Medium', i:'Medium',
+    detail:'AI tools may struggle with cross-repo context coherence. Treat as a validation exercise — document limitations and workarounds instead of forcing a full solution. This is exactly the kind of blocker we need to surface.' },
+  { title:'Mock project too simple to exercise all units', l:'Medium', i:'Medium',
+    detail:'PALO IT defined detailed requirements (7 slides, minimum thresholds). Assess complexity in S1. Multi-repo structure is a hard prerequisite — without it, several units cannot be validated.' },
+  { title:'Tool access delays (GitLab, AWS, ServiceNow, Splunk…)', l:'Medium', i:'High',
+    detail:'Submit all access requests before T0. Validate all access in S1 gate. Resequence blocked units to the other parallel stream. Access delays are the most common project-start risk.' },
+  { title:'AI tool evolution during engagement', l:'Medium', i:'Low',
+    detail:'Document and version-pin all tool/config versions used. Reevaluate implications in the transformation phase. Rapid model upgrades are expected but manageable.' },
+  { title:'Terraform state not accessible for T11', l:'Medium', i:'Medium',
+    detail:'If state is restricted, work on fresh Terraform from scratch on mock project. This is an explicitly accepted fallback — Accor agreed to it.' },
+  { title:'Cross-stream dependency blocks', l:'Low', i:'Medium',
+    detail:'Sequence dependent units (e.g. T10 depends on T5) in the same stream. Prioritize independent units in the parallel stream. TL coordinates sequencing in S1.' },
+  { title:'Accor standards undocumented', l:'Low', i:'Medium',
+    detail:'Capture what exists in S1. If undocumented, propose a first draft for Accor validation. PALO IT must not define Accor standards unilaterally.' },
+];
+
+// ──────────────────────────────────── STATE ────────────────────────────────────
+
+let activeFilter = 'all';
+let activeStage  = null;
+
+// ──────────────────────────────────── RENDER PDLC ────────────────────────────────────
+
+function renderPDLC() {
+  const container = document.getElementById('pdlc-stages');
+  container.innerHTML = PDLC_STAGES.map(s => `
+    <div class="stage${s.inScope ? '' : ''}" id="stage-${s.id}" onclick="toggleStage('${s.id}')">
+      <div style="font-size:22px;margin-bottom:6px;">${s.emoji}</div>
+      <div class="s-label" style="font-size:11.5px;font-weight:600;color:#94a3b8;line-height:1.3;">
+        ${s.label}
+        ${s.inScope ? '<span style="color:var(--gold);font-size:10px;display:block;margin-top:2px;">In Scope</span>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleStage(id) {
+  if (activeStage === id) {
+    clearStageFilter();
+    return;
+  }
+  activeStage = id;
+  document.querySelectorAll('.stage').forEach(el => el.classList.remove('s-active'));
+  document.getElementById('stage-' + id).classList.add('s-active');
+  const stage = PDLC_STAGES.find(s => s.id === id);
+  document.getElementById('clear-stage-btn').style.display = '';
+  document.getElementById('stage-filter-label').textContent =
+    `Showing units for: ${stage.label} (${stage.units.join(', ')})`;
+  applyFilters();
+  document.getElementById('units').scrollIntoView({ behavior:'smooth' });
+}
+
+function clearStageFilter() {
+  activeStage = null;
+  document.querySelectorAll('.stage').forEach(el => el.classList.remove('s-active'));
+  document.getElementById('clear-stage-btn').style.display = 'none';
+  document.getElementById('stage-filter-label').textContent = '';
+  applyFilters();
+}
+
+// ──────────────────────────────────── RENDER UNITS ────────────────────────────────────
+
+function getTypeBadge(unit) {
+  if (unit.type === 'technical')  return '<span class="badge b-tech">Technical</span>';
+  if (unit.type === 'functional') return '<span class="badge b-func">Functional</span>';
+  return '<span class="badge b-spec">Special</span>';
+}
+
+function getCodeColor(unit) {
+  if (unit.type === 'technical')  return { bg:'rgba(59,130,246,.15)',  color:'#93c5fd' };
+  if (unit.type === 'functional') return { bg:'rgba(212,175,55,.15)',   color:'var(--gold)' };
+  return { bg:'rgba(168,85,247,.15)', color:'#c4b5fd' };
+}
+
+function renderUnits() {
+  const grid = document.getElementById('units-grid');
+
+  // Group headers
+  const sections = [
+    { label:'Initiation & Wrap-Up', filter: u => u.type === 'special' },
+    { label:'Technical Work Units (T1–T12)', filter: u => u.type === 'technical' },
+    { label:'Functional Work Units (F1–F3)', filter: u => u.type === 'functional' },
+  ];
+
+  let html = '';
+  sections.forEach(sec => {
+    const units = UNITS.filter(sec.filter);
+    html += `<div class="unit-section-title">${sec.label}</div>`;
+    html += units.map(unit => {
+      const cc = getCodeColor(unit);
+      return `
+<div class="unit-card" id="unit-${unit.id}"
+  data-type="${unit.type}"
+  data-scope="${unit.inScope}"
+  data-stages="${unit.stages.join(',')}"
+  data-code="${unit.id}"
+  data-title="${unit.title.toLowerCase()}">
+  <div class="unit-hdr" onclick="toggleUnit('${unit.id}')">
+    <div style="background:${cc.bg};color:${cc.color};border-radius:8px;padding:6px 11px;font-weight:800;font-size:14px;flex-shrink:0;min-width:42px;text-align:center;line-height:1.2;">${unit.id}</div>
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
+        <span class="unit-title" style="font-weight:700;font-size:14.5px;color:#f1f5f9;">${unit.title}</span>
+        ${getTypeBadge(unit)}
+        ${unit.inScope ? '<span class="badge b-scope">⭐ In Scope</span>' : ''}
+        ${unit.yourStream && unit.type !== 'special' ? '<span class="badge b-yours">Your Stream</span>' : ''}
+        ${unit.highRisk  ? '<span class="badge b-risk">⚠ High Risk</span>' : ''}
+        <span class="badge b-dur">${unit.duration}</span>
+      </div>
+      <p style="font-size:12.5px;color:#64748b;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${unit.purpose}</p>
+    </div>
+    <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="unit-body">
+    <div style="margin-top:4px;">
+
+      <!-- Purpose -->
+      <div class="ub-section">
+        <div class="ub-section-title">Purpose</div>
+        <p style="font-size:13.5px;color:#94a3b8;line-height:1.7;">${unit.purpose}</p>
+      </div>
+
+      <!-- What success looks like -->
+      <div class="success-box">
+        <div class="s-title">✓ What Success Looks Like</div>
+        <p style="font-size:13px;color:#e2e8f0;line-height:1.65;">${unit.success}</p>
+        <p style="font-size:12px;color:#64748b;margin-top:6px;font-style:italic;">Remember: if we hit a blocker we can't resolve — documenting it clearly is equally a success.</p>
+      </div>
+
+      <div class="ub-grid">
+        <div>
+          <!-- Must-haves -->
+          <div class="ub-section">
+            <div class="ub-section-title">Expected Outcomes — Must-Haves</div>
+            <ul class="blist">${unit.mustHaves.map(m => `<li>${m}</li>`).join('')}</ul>
+          </div>
+          <!-- Prereqs -->
+          <div class="ub-section">
+            <div class="ub-section-title">Prerequisites</div>
+            <ul class="blist">${unit.prereqs.map(p => `<li>${p}</li>`).join('')}</ul>
+          </div>
+        </div>
+        <div>
+          <!-- Nice-to-haves -->
+          <div class="ub-section">
+            <div class="ub-section-title">Expected Outcomes — If Time Allows</div>
+            <ul class="blist">${unit.niceToHaves.map(n => `<li>${n}</li>`).join('')}</ul>
+          </div>
+          <!-- Exclusions -->
+          <div class="ub-section">
+            <div class="ub-section-title">Explicitly Excluded</div>
+            <ul class="blist">${unit.exclusions.map(e => `<li>${e}</li>`).join('')}</ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resources -->
+      <div class="ub-section" style="padding-top:10px;border-top:1px solid var(--border);margin-top:14px;">
+        <span style="font-size:12px;color:#3a4268;font-weight:600;">Team &amp; Resources:</span>
+        <span style="font-size:12px;color:#64748b;margin-left:6px;">${unit.resources}</span>
+      </div>
+
+    </div>
+  </div>
+</div>`;
+    }).join('\n');
+  });
+
+  grid.innerHTML = html;
+  updateCount();
+}
+
+function toggleUnit(id) {
+  document.getElementById('unit-' + id).classList.toggle('expanded');
+}
+
+// ──────────────────────────────────── FILTERS ────────────────────────────────────
+
+function setFilter(btn, filter) {
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('factive'));
+  btn.classList.add('factive');
+  activeFilter = filter;
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('usearch').value.trim().toLowerCase();
+  document.querySelectorAll('.unit-card').forEach(card => {
+    const type     = card.dataset.type;
+    const inScope  = card.dataset.scope === 'true';
+    const stages   = card.dataset.stages ? card.dataset.stages.split(',').filter(Boolean) : [];
+    const titleTxt = card.dataset.title || '';
+    const code     = card.dataset.code  || '';
+
+    let show = true;
+    if (activeFilter === 'technical'  && type !== 'technical')  show = false;
+    if (activeFilter === 'functional' && type !== 'functional') show = false;
+    if (activeFilter === 'special'    && type !== 'special')    show = false;
+    if (activeFilter === 'scope'      && !inScope)              show = false;
+    if (activeStage && !stages.includes(activeStage))           show = false;
+    if (q && !titleTxt.includes(q) && !code.includes(q))       show = false;
+
+    card.classList.toggle('u-hidden', !show);
+  });
+  updateCount();
+}
+
+function updateCount() {
+  const total   = document.querySelectorAll('.unit-card').length;
+  const visible = document.querySelectorAll('.unit-card:not(.u-hidden)').length;
+  document.getElementById('units-count').textContent =
+    visible === total ? total : `${visible} of ${total}`;
+}
+
+// ──────────────────────────────────── RISKS ────────────────────────────────────
+
+function renderRisks() {
+  const container = document.getElementById('risks-list');
+  container.innerHTML = RISKS.map((r, i) => `
+    <div class="risk-row" onclick="this.classList.toggle('r-open')" id="risk-${i}">
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:4px 0;">
+        <svg class="r-chev" width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-top:1px;flex-shrink:0;">
+          <path d="M4 6l4 4 4-4" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:13.5px;font-weight:600;color:#f1f5f9;">${r.title}</span>
+            <span class="pill-${r.l.toLowerCase()}">${r.l} likelihood</span>
+            <span class="pill-${r.i.toLowerCase()}">${r.i} impact</span>
+            ${r.title.includes('ServiceNow') ? '<span class="badge b-risk">⚠ Watch Closely</span>' : ''}
+          </div>
+          <div class="risk-detail">
+            <p style="font-size:13px;color:#94a3b8;line-height:1.65;padding-top:6px;">${r.detail}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ──────────────────────────────────── TIMELINE TOGGLE ────────────────────────────────────
+
+function showTimeline(mode) {
+  document.getElementById('tl-view-base').style.display = mode === 'base' ? '' : 'none';
+  document.getElementById('tl-view-ext').style.display  = mode === 'ext'  ? '' : 'none';
+  document.getElementById('tl-base').classList.toggle('factive', mode === 'base');
+  document.getElementById('tl-ext').classList.toggle('factive',  mode === 'ext');
+}
+
+// ──────────────────────────────────── NAV ACTIVE ────────────────────────────────────
+
+function initNavScroll() {
+  const sections = ['context','approach','pdlc','units','your-role','mock-project','team','timeline','tools','risks'];
+  const links = {};
+  sections.forEach(id => {
+    const el = document.querySelector(`a[href="#${id}"]`);
+    if (el) links[id] = el;
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        Object.values(links).forEach(l => l.classList.remove('active'));
+        const id = entry.target.id;
+        if (links[id]) links[id].classList.add('active');
+      }
+    });
+  }, { rootMargin:'-20% 0px -70% 0px' });
+
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+}
+
+// ──────────────────────────────────── INIT ────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderPDLC();
+  renderUnits();
+  renderRisks();
+  initNavScroll();
+});
+</script>
+</body>
+</html>
