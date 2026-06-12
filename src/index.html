@@ -134,6 +134,15 @@
     .tab-pane { display: none; }
     .tab-pane.t-active { display: block; }
 
+    /* S1 Checklist items */
+    .s1-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0;
+      border-bottom: 1px solid #1a1f35; cursor: pointer; font-size: 13px;
+      color: #94a3b8; line-height: 1.55; width: 100%; }
+    .s1-item:last-child { border-bottom: none; }
+    .s1-item input[type=checkbox] { margin-top: 2px; accent-color: var(--gold);
+      width: 14px; height: 14px; flex-shrink: 0; cursor: pointer; }
+    .s1-item.done { color: #4a5568; text-decoration: line-through; }
+
     /* Phase */
     .phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; flex: 1; }
 
@@ -1624,7 +1633,13 @@ function renderUnits() {
     </svg>
   </div>
   <div class="unit-body">
-    <div style="margin-top:4px;">
+    ${unit.id === 'S1' ? `
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;margin-top:4px;">
+      <button class="tab-btn t-active" onclick="switchUnitTab('s1','info',this)">Information</button>
+      <button class="tab-btn" onclick="switchUnitTab('s1','todo',this)">Todo / Checklist <span id="s1-tab-badge" style="font-size:11px;color:var(--gold);margin-left:4px;"></span></button>
+    </div>
+    <div id="s1-pane-info" class="tab-pane t-active">
+    ` : '<div style="margin-top:4px;">'}
 
       <!-- Purpose -->
       <div class="ub-section">
@@ -1672,7 +1687,10 @@ function renderUnits() {
         <span style="font-size:12px;color:#64748b;margin-left:6px;">${unit.resources}</span>
       </div>
 
-    </div>
+    ${unit.id === 'S1' ? `
+    </div><!-- /s1-pane-info -->
+    <div id="s1-pane-todo" class="tab-pane"></div>
+    ` : '</div>'}
   </div>
 </div>`;
     }).join('\n');
@@ -1684,6 +1702,148 @@ function renderUnits() {
 
 function toggleUnit(id) {
   document.getElementById('unit-' + id).classList.toggle('expanded');
+}
+
+function switchUnitTab(unitId, pane, btn) {
+  const card = document.getElementById('unit-' + unitId.toUpperCase());
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('t-active'));
+  card.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('t-active'));
+  btn.classList.add('t-active');
+  document.getElementById(unitId + '-pane-' + pane).classList.add('t-active');
+}
+
+function injectS1Checklist() {
+  const pane = document.getElementById('s1-pane-todo');
+  if (!pane) return;
+  pane.innerHTML = `
+<div style="padding-top:4px;">
+  <p style="font-size:12px;color:#64748b;margin-bottom:20px;">Check off items as you go — progress is saved in your browser.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+
+    <div class="card" style="padding:18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:18px;">🔑</span>
+        <div style="font-weight:700;font-size:13px;color:#f1f5f9;">People &amp; Access</div>
+        <span id="prog-access" style="margin-left:auto;font-size:11px;font-weight:600;color:var(--gold);"></span>
+      </div>
+      <div class="s1-checklist-group" data-group="access">
+        <label class="s1-item"><input type="checkbox" data-key="acc-1"> PALO IT accounts created (GitLab, Jira, Confluence, AWS)</label>
+        <label class="s1-item"><input type="checkbox" data-key="acc-2"> ServiceNow access granted — flag if blocked (T10 depends on it)</label>
+        <label class="s1-item"><input type="checkbox" data-key="acc-3"> Splunk / monitoring tool access confirmed</label>
+        <label class="s1-item"><input type="checkbox" data-key="acc-4"> AccorGPT (LiteLLM + Bedrock) accessible from day 1</label>
+        <label class="s1-item"><input type="checkbox" data-key="acc-5"> Cline (VS Code) licensed and working through AccorGPT</label>
+        <label class="s1-item"><input type="checkbox" data-key="acc-6"> VPN / network access working</label>
+        <label class="s1-item"><input type="checkbox" data-key="acc-7"> Named Accor counterparts confirmed and available daily</label>
+        <label class="s1-item"><input type="checkbox" data-key="acc-8"> Accor leadership booked for prioritization workshop</label>
+      </div>
+    </div>
+
+    <div class="card" style="padding:18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:18px;">🏗️</span>
+        <div style="font-weight:700;font-size:13px;color:#f1f5f9;">Mock Project Readiness</div>
+        <span id="prog-mock" style="margin-left:auto;font-size:11px;font-weight:600;color:var(--gold);"></span>
+      </div>
+      <div class="s1-checklist-group" data-group="mock">
+        <label class="s1-item"><input type="checkbox" data-key="mck-1"> Forked mock project in GitLab (SPA frontend + backend + DB)</label>
+        <label class="s1-item"><input type="checkbox" data-key="mck-2"> Multi-repo confirmed (frontend, backend, infra separate)</label>
+        <label class="s1-item"><input type="checkbox" data-key="mck-3"> Isolated environments provisioned (dev + int, no prod data)</label>
+        <label class="s1-item"><input type="checkbox" data-key="mck-4"> GitFlow branching model configured</label>
+        <label class="s1-item"><input type="checkbox" data-key="mck-5"> Mock project complexity assessed and documented</label>
+        <label class="s1-item"><input type="checkbox" data-key="mck-6"> Terraform state accessible (or fresh-Terraform fallback agreed)</label>
+        <label class="s1-item"><input type="checkbox" data-key="mck-7"> Existing PDLC docs and standards shared by Accor</label>
+      </div>
+    </div>
+
+    <div class="card" style="padding:18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:18px;">🤖</span>
+        <div style="font-weight:700;font-size:13px;color:#f1f5f9;">AI Infrastructure</div>
+        <span id="prog-ai" style="margin-left:auto;font-size:11px;font-weight:600;color:var(--gold);"></span>
+      </div>
+      <div class="s1-checklist-group" data-group="ai">
+        <label class="s1-item"><input type="checkbox" data-key="ai-1"> AccorGPT confirmed current-gen model (Claude 4.x / GPT-4.x)</label>
+        <label class="s1-item"><input type="checkbox" data-key="ai-2"> Separate AI repo created (prompts/agents/configs — not in mock repos)</label>
+        <label class="s1-item"><input type="checkbox" data-key="ai-3"> All team members have commit access to AI repo</label>
+        <label class="s1-item"><input type="checkbox" data-key="ai-4"> Data residency and AI governance confirmed with Accor</label>
+        <label class="s1-item"><input type="checkbox" data-key="ai-5"> No fine-tuning required — confirmed out of scope</label>
+      </div>
+    </div>
+
+    <div class="card" style="padding:18px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:18px;">📋</span>
+        <div style="font-weight:700;font-size:13px;color:#f1f5f9;">Planning &amp; Prioritisation</div>
+        <span id="prog-plan" style="margin-left:auto;font-size:11px;font-weight:600;color:var(--gold);"></span>
+      </div>
+      <div class="s1-checklist-group" data-group="plan">
+        <label class="s1-item"><input type="checkbox" data-key="pln-1"> Prioritization workshop run — unit order agreed with Accor leadership</label>
+        <label class="s1-item"><input type="checkbox" data-key="pln-2"> PDLC stage mapping validated against Accor docs</label>
+        <label class="s1-item"><input type="checkbox" data-key="pln-3"> Multi-repo complexity assessment completed</label>
+        <label class="s1-item"><input type="checkbox" data-key="pln-4"> Risk-based prioritization confirmed (high-risk units first)</label>
+        <label class="s1-item"><input type="checkbox" data-key="pln-5"> Success criteria and KPIs defined per unit</label>
+        <label class="s1-item"><input type="checkbox" data-key="pln-6"> Baseline KPI measurements taken (nice-to-have)</label>
+        <label class="s1-item"><input type="checkbox" data-key="pln-7"> Preliminary AI integration gap analysis (nice-to-have)</label>
+        <label class="s1-item"><input type="checkbox" data-key="pln-8"> Engagement plan + backlog finalized in Jira</label>
+        <label class="s1-item"><input type="checkbox" data-key="pln-9"> Prerequisites register documented and signed off</label>
+      </div>
+    </div>
+
+    <div class="card" style="padding:18px;border-color:rgba(212,175,55,.35);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:18px;">⭐</span>
+        <div style="font-weight:700;font-size:13px;color:var(--gold);">Functional Stream — Your Items</div>
+        <span id="prog-func" style="margin-left:auto;font-size:11px;font-weight:600;color:var(--gold);"></span>
+      </div>
+      <div class="s1-checklist-group" data-group="func">
+        <label class="s1-item"><input type="checkbox" data-key="fnc-1"> Confirm functional unit (candidate: F2 — AI-Augmented Product Management)</label>
+        <label class="s1-item"><input type="checkbox" data-key="fnc-2"> Named Accor counterparts identified: BAs, POs, PMs, Delivery Leads</label>
+        <label class="s1-item"><input type="checkbox" data-key="fnc-3"> Counterpart availability cadence confirmed (2–4 days/week)</label>
+        <label class="s1-item"><input type="checkbox" data-key="fnc-4"> Jira board set up, accessible, understood — your primary surface</label>
+        <label class="s1-item"><input type="checkbox" data-key="fnc-5"> F2 initial scope framed: which PM workflows get AI-augmented?</label>
+        <label class="s1-item"><input type="checkbox" data-key="fnc-6"> TL involvement aligned (20%) — how/when TL reviews workflow designs</label>
+        <label class="s1-item"><input type="checkbox" data-key="fnc-7"> Accor's existing PM tooling understood (Jira + Confluence setup)</label>
+      </div>
+    </div>
+
+    <div class="card" style="padding:18px;border-color:rgba(34,197,94,.25);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:18px;">🚦</span>
+        <div style="font-weight:700;font-size:13px;color:#86efac;">S1 Exit Gate</div>
+        <span id="prog-gate" style="margin-left:auto;font-size:11px;font-weight:600;color:#86efac;"></span>
+      </div>
+      <div class="s1-checklist-group" data-group="gate">
+        <label class="s1-item"><input type="checkbox" data-key="gte-1"> All tool access confirmed — escalate immediately if blocked</label>
+        <label class="s1-item"><input type="checkbox" data-key="gte-2"> Mock project available and complexity-assessed</label>
+        <label class="s1-item"><input type="checkbox" data-key="gte-3"> Unit order agreed, backlog in Jira</label>
+        <label class="s1-item"><input type="checkbox" data-key="gte-4"> Success criteria confirmed per unit</label>
+        <label class="s1-item"><input type="checkbox" data-key="gte-5"> AccorGPT + Cline working for all team members</label>
+        <label class="s1-item"><input type="checkbox" data-key="gte-6"> AI repository created and accessible to all streams</label>
+        <label class="s1-item"><input type="checkbox" data-key="gte-7"> Accor counterparts confirmed — no gaps in week 2+</label>
+      </div>
+      <div class="callout" style="margin-top:12px;padding:8px 12px;border-color:rgba(34,197,94,.25);">
+        <p style="font-size:12px;color:#86efac;line-height:1.6;">If any exit gate item is blocked, do not start parallel execution. Escalate to EM and agree mitigation first.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Progress bar -->
+  <div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:12px;font-weight:600;color:#f1f5f9;">Overall S1 Progress</span>
+      <span id="s1-total-label" style="font-size:12px;font-weight:700;color:var(--gold);">0 / 43 done</span>
+    </div>
+    <div style="background:#222840;border-radius:999px;height:6px;overflow:hidden;">
+      <div id="s1-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold),#e8c84d);border-radius:999px;transition:width .3s;"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+      <button onclick="clearS1Checklist()" style="font-size:11px;color:#3a4268;background:none;border:none;cursor:pointer;text-decoration:underline;">Reset all</button>
+    </div>
+  </div>
+</div>
+  `;
 }
 
 // ──────────────────────────────────── FILTERS ────────────────────────────────────
@@ -1785,13 +1945,71 @@ function initNavScroll() {
   });
 }
 
+// ──────────────────────────────────── S1 CHECKLIST ────────────────────────────────────
+
+const S1_TOTAL = 43;
+
+function updateS1Group(group) {
+  const container = document.querySelector(`.s1-checklist-group[data-group="${group}"]`);
+  if (!container) return;
+  const boxes = container.querySelectorAll('input[type=checkbox]');
+  const done  = [...boxes].filter(b => b.checked).length;
+  const prog  = document.getElementById(`prog-${group}`);
+  if (prog) prog.textContent = `${done}/${boxes.length}`;
+}
+
+function updateS1Total() {
+  const all  = document.querySelectorAll('.s1-checklist-group input[type=checkbox]');
+  const done = [...all].filter(b => b.checked).length;
+  const lbl  = document.getElementById('s1-total-label');
+  const bar  = document.getElementById('s1-progress-bar');
+  const badge = document.getElementById('s1-tab-badge');
+  if (lbl) lbl.textContent = `${done} / ${S1_TOTAL} done`;
+  if (bar) bar.style.width = `${Math.round((done / S1_TOTAL) * 100)}%`;
+  if (badge) badge.textContent = done > 0 ? `${done}/${S1_TOTAL}` : '';
+}
+
+function initS1Checklist() {
+  const boxes = document.querySelectorAll('.s1-checklist-group input[type=checkbox]');
+  boxes.forEach(box => {
+    const key = box.dataset.key;
+    if (localStorage.getItem('s1_' + key) === '1') {
+      box.checked = true;
+      box.closest('label').classList.add('done');
+    }
+    box.addEventListener('change', () => {
+      localStorage.setItem('s1_' + key, box.checked ? '1' : '0');
+      box.closest('label').classList.toggle('done', box.checked);
+      const group = box.closest('.s1-checklist-group').dataset.group;
+      updateS1Group(group);
+      updateS1Total();
+    });
+  });
+  // init group counters
+  ['access','mock','ai','plan','func','gate'].forEach(updateS1Group);
+  updateS1Total();
+}
+
+function clearS1Checklist() {
+  if (!confirm('Reset all S1 checklist items?')) return;
+  document.querySelectorAll('.s1-checklist-group input[type=checkbox]').forEach(box => {
+    box.checked = false;
+    box.closest('label').classList.remove('done');
+    localStorage.removeItem('s1_' + box.dataset.key);
+  });
+  ['access','mock','ai','plan','func','gate'].forEach(updateS1Group);
+  updateS1Total();
+}
+
 // ──────────────────────────────────── INIT ────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
   renderPDLC();
   renderUnits();
+  injectS1Checklist();   // must run after renderUnits so #s1-pane-todo exists
   renderRisks();
   initNavScroll();
+  initS1Checklist();
 });
 </script>
 </body>
