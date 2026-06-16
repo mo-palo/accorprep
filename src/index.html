@@ -90,10 +90,11 @@
     .cl-list { display:flex;flex-direction:column;gap:6px;margin-bottom:8px; }
     .cl-card { background:var(--elevated);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:border-color .15s; }
     .cl-card:hover { border-color:var(--border-h); }
-    .cl-card.clarify { border-left:3px solid rgba(234,179,8,.55); }
+    .cl-card.clarify { border-color:rgba(234,179,8,.5); }
     .cl-card-row { display:flex;align-items:center;gap:8px; }
     .cl-card-title { flex:1;font-size:13px;color:#cbd5e1;min-width:0;word-break:break-word;line-height:1.5; }
     .cl-card-title.done { color:#4a5568;text-decoration:line-through; }
+    .cl-card-title.clarify { color:#eab308;font-style:italic; }
     /* Priority badges — display only */
     .cl-badge { display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;font-size:10.5px;font-weight:700;flex-shrink:0;line-height:1.7; }
     .cl-badge-must { background:rgba(245,158,11,.14);color:#f59e0b;border:1px solid rgba(245,158,11,.35); }
@@ -2155,7 +2156,7 @@ function escapeHtml(str) {
 /* ── Render list ── */
 function renderUserChecklist(unitId) {
   const raw      = getUnitChecklist(unitId);
-  const items    = raw.map(it => ({ priority:null, clarify:false, note:'', ...it }));
+  const items    = raw.map(it => ({ priority:null, clarify:false, note:'', plan:'', ...it }));
   const renderEl = document.getElementById('user-checklist-render');
   const addEl    = document.getElementById('user-checklist-add');
   if (!renderEl || !addEl) return;
@@ -2169,27 +2170,32 @@ function renderUserChecklist(unitId) {
 
 function _buildDisplayCard(unitId, item) {
   const hasNote = !!(item.note && item.note.trim());
+  const hasPlan = !!(item.plan && item.plan.trim());
+  const hasExtra = hasNote || hasPlan;
   const badge = item.priority === 'must'
     ? '<span class="cl-badge cl-badge-must">Must Have</span>'
     : item.priority === 'nice'
     ? '<span class="cl-badge cl-badge-nice">Nice to Have</span>'
     : '';
-  const chevron = hasNote
-    ? `<button class="cl-action-btn" id="cl-chev-${item.id}" onclick="toggleNoteDisplay('${item.id}')" title="Toggle note"
-        style="color:#3a4268;transform:rotate(180deg);transition:transform .2s;">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>`
+  const chevron = `<button class="cl-action-btn" id="cl-chev-${item.id}" onclick="toggleNoteDisplay('${item.id}')" title="Toggle note"
+      style="color:#3a4268;transform:${hasExtra?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;${hasExtra?'':'opacity:0;pointer-events:none;'}">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>`;
+  const noteSection = hasNote
+    ? `<div style="margin-bottom:${hasPlan?'10px':'0'};"><p class="cl-note-text" style="color:#64748b;">${escapeHtml(item.note)}</p></div>`
     : '';
-  const noteHtml = hasNote
-    ? `<div class="cl-note-display" id="cl-note-display-${item.id}">
-        <p class="cl-note-text">${escapeHtml(item.note)}</p>
-      </div>`
+  const planSection = hasPlan
+    ? `<div><p style="font-size:10.5px;font-weight:700;letter-spacing:.06em;color:#3a4268;text-transform:uppercase;margin-bottom:4px;">Implementation Plan</p>
+       <p class="cl-note-text" style="color:#64748b;">${escapeHtml(item.plan)}</p></div>`
+    : '';
+  const noteHtml = hasExtra
+    ? `<div class="cl-note-display" id="cl-note-display-${item.id}">${noteSection}${planSection}</div>`
     : '';
   return `<div class="cl-card${item.clarify?' clarify':''}" id="cl-card-${item.id}">
   <div class="cl-card-row">
     <input type="checkbox" ${item.checked?'checked':''} onchange="toggleChecklistItem('${unitId}','${item.id}')"
       style="accent-color:var(--gold);width:14px;height:14px;flex-shrink:0;cursor:pointer;">
-    <span class="cl-card-title${item.checked?' done':''}">${escapeHtml(item.text)}</span>
+    <span class="cl-card-title${item.checked?' done':''}${item.clarify?' clarify':''}">${escapeHtml(item.text)}</span>
     ${badge}
     <button class="cl-clarify-btn${item.clarify?' active':''}" onclick="toggleClarify('${unitId}','${item.id}')" title="Needs clarification">?</button>
     <button class="cl-action-btn" onclick="startEditChecklistItem('${unitId}','${item.id}')" title="Edit" style="color:#64748b;">✎</button>
@@ -2221,7 +2227,7 @@ function toggleNoteDisplay(itemId) {
 function showAddForm(unitId) {
   const addEl = document.getElementById('user-checklist-add');
   if (!addEl) return;
-  addEl.innerHTML = _buildForm(unitId, null, { text:'', priority:null, clarify:false, note:'' });
+  addEl.innerHTML = _buildForm(unitId, null, { text:'', priority:null, clarify:false, note:'', plan:'' });
   addEl.querySelector('.cl-form-input')?.focus();
 }
 
@@ -2275,6 +2281,10 @@ function _buildForm(unitId, itemId, item) {
     <label class="cl-form-label">Note <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#3a4268;font-size:10px;">(optional)</span></label>
     <textarea class="cl-form-ta" id="cl-form-note-${eid}" placeholder="Add a note…">${escapeHtml(item.note||'')}</textarea>
   </div>
+  <div>
+    <label class="cl-form-label">Implementation Plan <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#3a4268;font-size:10px;">(optional)</span></label>
+    <textarea class="cl-form-ta" id="cl-form-plan-${eid}" placeholder="How do you plan to achieve this?…">${escapeHtml(item.plan||'')}</textarea>
+  </div>
   <div style="display:flex;gap:8px;justify-content:flex-end;">
     <button onclick="${cancelCall}" type="button"
       style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:#64748b;font-size:12.5px;cursor:pointer;">Cancel</button>
@@ -2308,30 +2318,31 @@ function _readForm(eid) {
   const priority = pVal === 'must' ? 'must' : pVal === 'nice' ? 'nice' : null;
   const clarify  = !!(document.getElementById('cl-form-clarify-' + eid)?.classList.contains('active'));
   const note     = (document.getElementById('cl-form-note-' + eid)?.value || '').trim();
-  return { title, priority, clarify, note };
+  const plan     = (document.getElementById('cl-form-plan-' + eid)?.value || '').trim();
+  return { title, priority, clarify, note, plan };
 }
 
 /* ── Add item ── */
 function addChecklistItem(unitId) {
   const eid = 'add-' + unitId;
-  const { title, priority, clarify, note } = _readForm(eid);
+  const { title, priority, clarify, note, plan } = _readForm(eid);
   if (!title) { document.getElementById('cl-edit-title-' + eid)?.focus(); return; }
   const items = getUnitChecklist(unitId);
   const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
     ? crypto.randomUUID()
     : Date.now().toString(36) + Math.random().toString(36).slice(2);
-  items.push({ id, text:title, checked:false, priority, clarify, note });
+  items.push({ id, text:title, checked:false, priority, clarify, note, plan });
   saveUnitChecklist(unitId, items);
   renderUserChecklist(unitId);
 }
 
 /* ── Save edit ── */
 function saveEditChecklistItem(unitId, itemId) {
-  const { title, priority, clarify, note } = _readForm(itemId);
+  const { title, priority, clarify, note, plan } = _readForm(itemId);
   if (!title) { document.getElementById('cl-edit-title-' + itemId)?.focus(); return; }
   const items = getUnitChecklist(unitId);
   const item  = items.find(i => i.id === itemId);
-  if (item) { item.text = title; item.priority = priority; item.clarify = clarify; item.note = note; }
+  if (item) { item.text = title; item.priority = priority; item.clarify = clarify; item.note = note; item.plan = plan; }
   saveUnitChecklist(unitId, items);
   renderUserChecklist(unitId);
 }
@@ -2352,10 +2363,12 @@ function toggleClarify(unitId, itemId) {
   item.clarify = !item.clarify;
   saveUnitChecklist(unitId, items);
   /* Update in place — no full re-render */
-  const card = document.getElementById('cl-card-' + itemId);
-  const btn  = card?.querySelector('.cl-clarify-btn');
-  if (card) card.classList.toggle('clarify', item.clarify);
-  if (btn)  btn.classList.toggle('active',   item.clarify);
+  const card  = document.getElementById('cl-card-' + itemId);
+  const title = card?.querySelector('.cl-card-title');
+  const btn   = card?.querySelector('.cl-clarify-btn');
+  if (card)  card.classList.toggle('clarify',  item.clarify);
+  if (title) title.classList.toggle('clarify', item.clarify);
+  if (btn)   btn.classList.toggle('active',    item.clarify);
 }
 
 /* ── Delete with inline confirm ── */
