@@ -117,10 +117,12 @@
     .cl-form-label { font-size:11px;font-weight:700;letter-spacing:.06em;color:#475569;text-transform:uppercase;margin-bottom:4px;display:block; }
     .cl-form-input { width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;
       padding:7px 10px;color:#e2e8f0;font-size:13px;outline:none;box-sizing:border-box;font-family:inherit; }
+    .cl-form-input::placeholder { color:#2d3a58;opacity:1; }
     .cl-form-input:focus { border-color:var(--gold); }
     .cl-form-ta { width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;
       padding:7px 10px;color:#94a3b8;font-size:12.5px;line-height:1.6;resize:vertical;min-height:60px;
       font-family:inherit;outline:none;box-sizing:border-box; }
+    .cl-form-ta::placeholder { color:#2d3a58;opacity:1; }
     .cl-form-ta:focus { border-color:var(--gold);color:#e2e8f0; }
     /* Priority selector in form */
     .cl-prio-opts { display:flex;gap:6px;flex-wrap:wrap; }
@@ -2156,7 +2158,7 @@ function escapeHtml(str) {
 /* ── Render list ── */
 function renderUserChecklist(unitId) {
   const raw      = getUnitChecklist(unitId);
-  const items    = raw.map(it => ({ priority:null, clarify:false, note:'', plan:'', ...it }));
+  const items    = raw.map(it => ({ priority:null, clarify:false, note:'', plan:'', question:'', ...it }));
   const renderEl = document.getElementById('user-checklist-render');
   const addEl    = document.getElementById('user-checklist-add');
   if (!renderEl || !addEl) return;
@@ -2169,27 +2171,51 @@ function renderUserChecklist(unitId) {
 }
 
 function _buildDisplayCard(unitId, item) {
-  const hasNote = !!(item.note && item.note.trim());
-  const hasPlan = !!(item.plan && item.plan.trim());
-  const hasExtra = hasNote || hasPlan;
+  const hasNote     = !!(item.note     && item.note.trim());
+  const hasQuestion = !!(item.question && item.question.trim());
+  const hasPlan     = !!(item.plan     && item.plan.trim());
+  const hasExtra    = hasNote || hasQuestion || hasPlan;
   const badge = item.priority === 'must'
     ? '<span class="cl-badge cl-badge-must">Must Have</span>'
     : item.priority === 'nice'
     ? '<span class="cl-badge cl-badge-nice">Nice to Have</span>'
     : '';
-  const chevron = `<button class="cl-action-btn" id="cl-chev-${item.id}" onclick="toggleNoteDisplay('${item.id}')" title="Toggle note"
+  const chevron = `<button class="cl-action-btn" id="cl-chev-${item.id}" onclick="toggleNoteDisplay('${item.id}')" title="Toggle details"
       style="color:#3a4268;transform:${hasExtra?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;${hasExtra?'':'opacity:0;pointer-events:none;'}">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>`;
+
+  /* Note — no icon label, just text */
   const noteSection = hasNote
-    ? `<div style="margin-bottom:${hasPlan?'10px':'0'};"><p class="cl-note-text" style="color:#64748b;">${escapeHtml(item.note)}</p></div>`
+    ? `<div style="margin-bottom:${hasQuestion||hasPlan?'10px':'0'};">
+        <p class="cl-note-text">${escapeHtml(item.note)}</p>
+      </div>`
     : '';
+
+  /* Question — circle-? icon */
+  const questionSection = hasQuestion
+    ? `<div style="margin-bottom:${hasPlan?'10px':'0'};">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;color:#475569;">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 6.2C6.7 5.2 8.9 5 9 6.5c.1 1-1 1.5-1 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.2" r=".8" fill="currentColor"/></svg>
+          <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Question</span>
+        </div>
+        <p class="cl-note-text">${escapeHtml(item.question)}</p>
+      </div>`
+    : '';
+
+  /* Implementation Plan — bulleted list icon */
   const planSection = hasPlan
-    ? `<div><p style="font-size:10.5px;font-weight:700;letter-spacing:.06em;color:#3a4268;text-transform:uppercase;margin-bottom:4px;">Implementation Plan</p>
-       <p class="cl-note-text" style="color:#64748b;">${escapeHtml(item.plan)}</p></div>`
+    ? `<div>
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;color:#475569;">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="10" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.4"/><path d="M9 4h5M9 12h5M9 7h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Implementation Plan</span>
+        </div>
+        <p class="cl-note-text">${escapeHtml(item.plan)}</p>
+      </div>`
     : '';
+
   const noteHtml = hasExtra
-    ? `<div class="cl-note-display" id="cl-note-display-${item.id}">${noteSection}${planSection}</div>`
+    ? `<div class="cl-note-display" id="cl-note-display-${item.id}">${noteSection}${questionSection}${planSection}</div>`
     : '';
   return `<div class="cl-card${item.clarify?' clarify':''}" id="cl-card-${item.id}">
   <div class="cl-card-row">
@@ -2227,7 +2253,7 @@ function toggleNoteDisplay(itemId) {
 function showAddForm(unitId) {
   const addEl = document.getElementById('user-checklist-add');
   if (!addEl) return;
-  addEl.innerHTML = _buildForm(unitId, null, { text:'', priority:null, clarify:false, note:'', plan:'' });
+  addEl.innerHTML = _buildForm(unitId, null, { text:'', priority:null, clarify:false, note:'', plan:'', question:'' });
   addEl.querySelector('.cl-form-input')?.focus();
 }
 
@@ -2278,11 +2304,24 @@ function _buildForm(unitId, itemId, item) {
     <span style="font-size:12.5px;color:#64748b;">Needs clarification</span>
   </div>
   <div>
-    <label class="cl-form-label">Note <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#3a4268;font-size:10px;">(optional)</span></label>
+    <label class="cl-form-label" style="display:flex;align-items:center;gap:5px;">
+      <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 8h10M3 12h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Note
+    </label>
     <textarea class="cl-form-ta" id="cl-form-note-${eid}" placeholder="Add a note…">${escapeHtml(item.note||'')}</textarea>
   </div>
   <div>
-    <label class="cl-form-label">Implementation Plan <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#3a4268;font-size:10px;">(optional)</span></label>
+    <label class="cl-form-label" style="display:flex;align-items:center;gap:5px;">
+      <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 6.2C6.7 5.2 8.9 5 9 6.5c.1 1-1 1.5-1 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.2" r=".8" fill="currentColor"/></svg>
+      Question
+    </label>
+    <textarea class="cl-form-ta" id="cl-form-question-${eid}" placeholder="What needs clarification or is uncertain?…">${escapeHtml(item.question||'')}</textarea>
+  </div>
+  <div>
+    <label class="cl-form-label" style="display:flex;align-items:center;gap:5px;">
+      <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="10" width="4" height="4" rx=".8" stroke="currentColor" stroke-width="1.4"/><path d="M9 4h5M9 12h5M9 7h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Implementation Plan
+    </label>
     <textarea class="cl-form-ta" id="cl-form-plan-${eid}" placeholder="How do you plan to achieve this?…">${escapeHtml(item.plan||'')}</textarea>
   </div>
   <div style="display:flex;gap:8px;justify-content:flex-end;">
@@ -2319,30 +2358,33 @@ function _readForm(eid) {
   const clarify  = !!(document.getElementById('cl-form-clarify-' + eid)?.classList.contains('active'));
   const note     = (document.getElementById('cl-form-note-' + eid)?.value || '').trim();
   const plan     = (document.getElementById('cl-form-plan-' + eid)?.value || '').trim();
-  return { title, priority, clarify, note, plan };
+  const question = (document.getElementById('cl-form-question-' + eid)?.value || '').trim();
+  /* question field having text forces clarify on */
+  const effectiveClarify = clarify || !!question;
+  return { title, priority, clarify: effectiveClarify, note, plan, question };
 }
 
 /* ── Add item ── */
 function addChecklistItem(unitId) {
   const eid = 'add-' + unitId;
-  const { title, priority, clarify, note, plan } = _readForm(eid);
+  const { title, priority, clarify, note, plan, question } = _readForm(eid);
   if (!title) { document.getElementById('cl-edit-title-' + eid)?.focus(); return; }
   const items = getUnitChecklist(unitId);
   const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
     ? crypto.randomUUID()
     : Date.now().toString(36) + Math.random().toString(36).slice(2);
-  items.push({ id, text:title, checked:false, priority, clarify, note, plan });
+  items.push({ id, text:title, checked:false, priority, clarify, note, plan, question });
   saveUnitChecklist(unitId, items);
   renderUserChecklist(unitId);
 }
 
 /* ── Save edit ── */
 function saveEditChecklistItem(unitId, itemId) {
-  const { title, priority, clarify, note, plan } = _readForm(itemId);
+  const { title, priority, clarify, note, plan, question } = _readForm(itemId);
   if (!title) { document.getElementById('cl-edit-title-' + itemId)?.focus(); return; }
   const items = getUnitChecklist(unitId);
   const item  = items.find(i => i.id === itemId);
-  if (item) { item.text = title; item.priority = priority; item.clarify = clarify; item.note = note; item.plan = plan; }
+  if (item) { item.text = title; item.priority = priority; item.clarify = clarify; item.note = note; item.plan = plan; item.question = question; }
   saveUnitChecklist(unitId, items);
   renderUserChecklist(unitId);
 }
