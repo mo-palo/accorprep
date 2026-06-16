@@ -72,7 +72,8 @@
 
     /* Unit cards */
     .unit-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-      overflow: hidden; transition: border-color .15s; cursor: pointer; }
+      overflow: hidden; transition: border-color .15s; cursor: pointer; margin-bottom: 10px; }
+    .unit-card:last-child { margin-bottom: 0; }
     .unit-card:hover { border-color: var(--gold); }
     .unit-card.u-hidden { display: none !important; }
     .unit-hdr { padding: 18px 20px; display: flex; align-items: flex-start; gap: 14px; }
