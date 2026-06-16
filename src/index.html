@@ -9,8 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; font-family: 'Inter', system-ui, sans-serif; }
-    body { background: #0f1528; color: #e2e8f0; min-height: 100vh; }
+    html { font-family: 'Inter', system-ui, sans-serif; }
+    body { background: #0f1528; color: #e2e8f0; overflow: hidden; }
 
     :root {
       --gold: #D4AF37; --gold-l: #e8c84d; --gold-dim: rgba(212,175,55,0.10);
@@ -25,14 +25,15 @@
 
     /* Layout */
     .container { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
-    section { padding: 72px 0; border-top: 1px solid var(--border); scroll-margin-top: 58px; }
+    section { display: none; height: 100%; overflow-y: auto; padding: 56px 0; border-top: none; }
 
     /* Nav */
     #nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       background: rgba(15,21,40,0.96); backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border); height: 56px; display: flex; align-items: center; }
     .nav-link { color: #64748b; font-size: 12.5px; font-weight: 500; text-decoration: none;
-      padding: 5px 9px; border-radius: 6px; transition: color 0.15s; white-space: nowrap; }
+      padding: 5px 9px; border-radius: 6px; transition: color 0.15s; white-space: nowrap;
+      background: none; border: none; cursor: pointer; }
     .nav-link:hover, .nav-link.active { color: var(--gold); }
 
     /* Typography */
@@ -71,15 +72,24 @@
 
     /* Unit cards */
     .unit-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-      overflow: hidden; transition: border-color .15s; }
-    .unit-card:hover { border-color: var(--border-h); }
-    .unit-card.expanded { border-color: var(--gold) !important; }
+      overflow: hidden; transition: border-color .15s; cursor: pointer; }
+    .unit-card:hover { border-color: var(--gold); }
     .unit-card.u-hidden { display: none !important; }
-    .unit-hdr { cursor: pointer; padding: 18px 20px; display: flex; align-items: flex-start; gap: 14px; }
-    .unit-body { display: none; border-top: 1px solid var(--border); padding: 20px; }
-    .unit-card.expanded .unit-body { display: block; }
-    .unit-card.expanded .chev { transform: rotate(180deg); }
-    .chev { transition: transform .2s; flex-shrink: 0; color: #475569; margin-top: 2px; }
+    .unit-hdr { padding: 18px 20px; display: flex; align-items: flex-start; gap: 14px; }
+
+    /* Unit modal */
+    #unit-modal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.65);
+      backdrop-filter: blur(4px); display: flex; align-items: flex-start; justify-content: center;
+      padding: 40px 20px; overflow-y: auto; }
+    #modal-panel { width: 100%; max-width: 760px; background: var(--surface);
+      border: 1px solid var(--border-h); border-radius: 16px; overflow: hidden; }
+    #modal-body { overflow-y: auto; max-height: 62vh; padding: 24px; }
+
+    /* User checklist */
+    .cl-item { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .cl-item:last-child { border-bottom: none; }
+    .cl-item.done .cl-text { color: #4a5568; text-decoration: line-through; }
+    .cl-action-btn { background: none; border: none; cursor: pointer; padding: 2px 5px; border-radius: 4px; font-size: 13px; transition: color .15s; }
 
     /* Filter bar */
     .fbtn { padding: 6px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 500;
@@ -134,6 +144,13 @@
     .tab-pane { display: none; }
     .tab-pane.t-active { display: block; }
 
+    /* Unit type tabs */
+    .unit-tab { padding: 10px 18px; font-size: 14px; font-weight: 600; color: #64748b;
+      background: none; border: none; border-bottom: 2px solid transparent;
+      cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .unit-tab:hover { color: #e2e8f0; }
+    .unit-tab.t-active { color: var(--gold); border-bottom-color: var(--gold); }
+
     /* S1 Checklist items */
     .s1-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0;
       border-bottom: 1px solid #1a1f35; cursor: pointer; font-size: 13px;
@@ -150,10 +167,15 @@
     .stat { background: var(--elevated); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; }
 
     /* Hero */
-    #hero { padding-top: 88px !important; background: linear-gradient(135deg,#0a0f20 0%,#1a1f35 55%,#0a0f20 100%); border-top: none; }
+    #hero { padding-top: 72px !important; background: linear-gradient(135deg,#0a0f20 0%,#1a1f35 55%,#0a0f20 100%); }
 
     @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
     .fu { animation: fadeUp .35s ease-out; }
+
+    /* Page switcher */
+    #pages-container { height: calc(100vh - 56px); overflow: hidden; margin-top: 56px; }
+    .page-active { display: block !important; animation: pageFade .2s ease-out; }
+    @keyframes pageFade { from { opacity: 0; } to { opacity: 1; } }
 
     hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
 
@@ -195,24 +217,25 @@
 <!-- ═══════════════════════════════════ NAV ═══════════════════════════════════ -->
 <nav id="nav">
   <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <button id="nav-home" style="display:flex;align-items:center;gap:10px;flex-shrink:0;background:none;border:none;cursor:pointer;padding:0;">
       <div style="background:var(--gold);color:#0f1528;font-weight:800;font-size:12px;padding:4px 8px;border-radius:5px;letter-spacing:.04em;">ACCOR</div>
       <span style="color:#3a4268;font-size:12px;font-weight:500;">AI PDLC Backbone</span>
-    </div>
+    </button>
     <div style="display:flex;align-items:center;gap:2px;overflow-x:auto;padding-bottom:1px;">
-      <a href="#context"      class="nav-link">Context</a>
-      <a href="#approach"     class="nav-link">Approach</a>
-      <a href="#pdlc"         class="nav-link">PDLC</a>
-      <a href="#units"        class="nav-link">Work Units</a>
-      <a href="#your-role"    class="nav-link">Your Role</a>
-      <a href="#mock-project" class="nav-link">Mock Project</a>
-      <a href="#team"         class="nav-link">Team</a>
-      <a href="#timeline"     class="nav-link">Timeline</a>
-      <a href="#tools"        class="nav-link">Tools</a>
-      <a href="#risks"        class="nav-link">Risks</a>
+      <button class="nav-link" data-page="context">Context</button>
+      <button class="nav-link" data-page="approach">Approach</button>
+      <button class="nav-link" data-page="units">Work Units</button>
+      <button class="nav-link" data-page="your-role">Your Role</button>
+      <button class="nav-link" data-page="mock-project">Mock Project</button>
+      <button class="nav-link" data-page="team">Team</button>
+      <button class="nav-link" data-page="timeline">Timeline</button>
+      <button class="nav-link" data-page="tools">Tools</button>
+      <button class="nav-link" data-page="risks">Risks</button>
     </div>
   </div>
 </nav>
+
+<div id="pages-container">
 
 <!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
 <section id="hero">
@@ -472,72 +495,70 @@
   </div>
 </section>
 
-<!-- ═══════════════════════════════════ PDLC MAP ═══════════════════════════════════ -->
-<section id="pdlc">
-  <div class="container">
-    <span class="label">PDLC — Product Development Lifecycle</span>
-    <h2 class="title">AI Augmentation Across Every Stage</h2>
-    <p class="sub" style="max-width:580px;margin-bottom:12px;">Click a stage to filter the work units below to only those relevant to that PDLC stage.</p>
-    <p style="font-size:12px;color:#3a4268;margin-bottom:28px;">Gold = In Scope for this engagement</p>
-
-    <div id="pdlc-stages" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;"></div>
-
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <button onclick="clearStageFilter()" id="clear-stage-btn"
-        style="display:none;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid rgba(212,175,55,.3);background:rgba(212,175,55,.06);color:var(--gold);cursor:pointer;">
-        ✕ Clear stage filter
-      </button>
-      <span id="stage-filter-label" style="font-size:12px;color:#64748b;"></span>
-    </div>
-  </div>
-</section>
-
 <!-- ═══════════════════════════════════ WORK UNITS ═══════════════════════════════════ -->
-<section id="units" style="padding-top:0;border-top:none;">
+<section id="units">
   <div class="container">
     <span class="label">Work Units</span>
     <h2 class="title">All 15 Units — Full Depth</h2>
-    <p class="sub" style="max-width:580px;margin-bottom:20px;">Every unit: purpose, what success looks like, expected outcomes, prerequisites, and exclusions.</p>
+    <p class="sub" style="max-width:580px;margin-bottom:24px;">Purpose, success criteria, outcomes, prerequisites, and exclusions for every unit. Filter by PDLC stage or unit type.</p>
 
-    <!-- What is a Work Unit? -->
-    <div style="background:#1a1f35;border:1px solid #2a3150;border-left:3px solid var(--gold);border-radius:8px;padding:16px 20px;margin-bottom:28px;max-width:780px;">
-      <div style="font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">What is a Work Unit?</div>
-      <p style="color:#cbd5e1;font-size:13.5px;line-height:1.75;margin:0 0 10px;">
-        A <strong style="color:#f1f5f9;">work unit</strong> is a discrete, time-boxed exploration that embeds AI into one specific capability of the PDLC.
-        Each unit has a fixed scope, a clear "done" definition, and is validated entirely against the <strong style="color:#f1f5f9;">mock project</strong> — never on live Accor systems.
-      </p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:4px;">
-        <div style="background:#222840;border-radius:6px;padding:10px 14px;">
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">S — Special</div>
-          <div style="font-size:13px;color:#e2e8f0;">S1 Initiation &amp; S2 Wrap-Up — project bookends, not delivered work</div>
+    <!-- What is a Work Unit? (collapsible, collapsed by default) -->
+    <div style="margin-bottom:24px;max-width:780px;" id="wiw-wrapper">
+      <button id="wiw-toggle" onclick="(function(btn){var body=document.getElementById('wiw-body');var open=body.style.display!=='none';body.style.display=open?'none':'block';btn.querySelector('.wiw-chev').style.transform=open?'':'rotate(180deg)';btn.style.borderRadius=open?'8px':'8px 8px 0 0';})(this)"
+        style="width:100%;display:flex;align-items:center;gap:8px;background:#1a1f35;border:1px solid #2a3150;border-left:3px solid var(--gold);border-radius:8px;padding:10px 16px;cursor:pointer;text-align:left;">
+        <span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;flex:1;">What is a Work Unit?</span>
+        <svg class="wiw-chev" width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;transition:transform .2s;color:#475569;">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div id="wiw-body" style="display:none;background:#1a1f35;border:1px solid #2a3150;border-top:none;border-left:3px solid var(--gold);border-radius:0 0 8px 8px;padding:16px 20px;">
+        <p style="color:#cbd5e1;font-size:13.5px;line-height:1.75;margin:0 0 10px;">
+          A <strong style="color:#f1f5f9;">work unit</strong> is a discrete, time-boxed exploration that embeds AI into one specific capability of the PDLC.
+          Each unit has a fixed scope, a clear "done" definition, and is validated entirely against the <strong style="color:#f1f5f9;">mock project</strong> — never on live Accor systems.
+        </p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:4px;">
+          <div style="background:#222840;border-radius:6px;padding:10px 14px;">
+            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">S — Special</div>
+            <div style="font-size:13px;color:#e2e8f0;">S1 Initiation &amp; S2 Wrap-Up — project bookends, not delivered work</div>
+          </div>
+          <div style="background:#222840;border-radius:6px;padding:10px 14px;">
+            <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">T — Technical (T1–T12)</div>
+            <div style="font-size:13px;color:#e2e8f0;">Each ~2 weeks. Delivered by AI engineers across two parallel technical streams</div>
+          </div>
+          <div style="background:#222840;border-radius:6px;padding:10px 14px;">
+            <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">F — Functional (F1–F3)</div>
+            <div style="font-size:13px;color:#e2e8f0;">Each ~3 weeks. Delivered by the functional stream — <strong style="color:#f1f5f9;">your stream</strong></div>
+          </div>
         </div>
-        <div style="background:#222840;border-radius:6px;padding:10px 14px;">
-          <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">T — Technical (T1–T12)</div>
-          <div style="font-size:13px;color:#e2e8f0;">Each ~2 weeks. Delivered by AI engineers across two parallel technical streams</div>
-        </div>
-        <div style="background:#222840;border-radius:6px;padding:10px 14px;">
-          <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">F — Functional (F1–F3)</div>
-          <div style="font-size:13px;color:#e2e8f0;">Each ~3 weeks. Delivered by the functional stream — <strong style="color:#f1f5f9;">your stream</strong></div>
-        </div>
+        <p style="color:#64748b;font-size:12px;margin:10px 0 0;">
+          The order of units is <strong style="color:#94a3b8;">decided during S1</strong> (initiation) based on Accor priorities, and can be reprioritised at steering committees. Units marked ⭐ are priority candidates for this engagement.
+        </p>
       </div>
-      <p style="color:#64748b;font-size:12px;margin:10px 0 0;">
-        The order of units is <strong style="color:#94a3b8;">decided during S1</strong> (initiation) based on Accor priorities, and can be reprioritised at steering committees. Units marked ⭐ are in scope for this engagement.
-      </p>
     </div>
 
-    <!-- Filter bar -->
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
-      <button class="fbtn factive" data-filter="all"     onclick="setFilter(this,'all')">All</button>
-      <button class="fbtn" data-filter="technical"       onclick="setFilter(this,'technical')">Technical (T)</button>
-      <button class="fbtn" data-filter="functional"      onclick="setFilter(this,'functional')">Functional (F)</button>
-      <button class="fbtn" data-filter="special"         onclick="setFilter(this,'special')">Initiation / Wrap-Up (S)</button>
-      <button class="fbtn" data-filter="scope"           onclick="setFilter(this,'scope')">⭐ In Scope Only</button>
-      <div style="margin-left:auto;">
+    <!-- Tab bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+      <div style="display:flex;">
+        <button class="unit-tab"          data-tab="technical"  onclick="switchUnitTypeTab(this,'technical')">Technical (T)</button>
+        <button class="unit-tab t-active"  data-tab="functional" onclick="switchUnitTypeTab(this,'functional')">Functional (F)</button>
+        <button class="unit-tab"          data-tab="special"    onclick="switchUnitTypeTab(this,'special')">Initiation / Wrap-Up (S)</button>
+      </div>
+      <div style="padding-bottom:6px;">
         <input id="usearch" type="text" placeholder="Search units…" oninput="applyFilters()">
       </div>
     </div>
 
-    <div style="font-size:12px;color:#3a4268;margin-bottom:16px;">
+    <!-- Category sub-filter (Technical tab only) -->
+    <div id="cat-filter-bar" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 0 16px;">
+      <button class="fbtn factive" data-cat="all"            onclick="setCat(this,'all')">All</button>
+      <button class="fbtn"         data-cat="development"    onclick="setCat(this,'development')">Development</button>
+      <button class="fbtn"         data-cat="qa"             onclick="setCat(this,'qa')">Quality Assurance</button>
+      <button class="fbtn"         data-cat="monitoring"     onclick="setCat(this,'monitoring')">Monitor &amp; Maintenance</button>
+      <button class="fbtn"         data-cat="documentation"  onclick="setCat(this,'documentation')">Documentation</button>
+      <button class="fbtn"         data-cat="infrastructure" onclick="setCat(this,'infrastructure')">Infrastructure</button>
+    </div>
+
+    <div style="font-size:12px;color:#3a4268;margin-bottom:16px; margin-top: 16px;">
       Showing <span id="units-count" style="color:var(--gold);font-weight:600;"></span> units
     </div>
 
@@ -1158,21 +1179,45 @@
         </ul>
       </div>
     </div>
+    <div style="border-top:1px solid var(--border);padding:32px 0;margin-top:40px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="background:var(--gold);color:#0f1528;font-weight:800;font-size:12px;padding:4px 8px;border-radius:5px;">ACCOR</div>
+          <span style="color:#3a4268;font-size:12.5px;">AI PDLC Tech Backbone — Project Onboarding Guide</span>
+        </div>
+        <div style="font-size:12px;color:#3a4268;">
+          Contact: Frederic Bernaroyat — fbernaroyat@palo-it.com — +66 805144156
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════════ -->
-<footer style="border-top:1px solid var(--border);padding:32px 0;margin-top:40px;">
-  <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div style="background:var(--gold);color:#0f1528;font-weight:800;font-size:12px;padding:4px 8px;border-radius:5px;">ACCOR</div>
-      <span style="color:#3a4268;font-size:12.5px;">AI PDLC Tech Backbone — Project Onboarding Guide</span>
+</div><!-- /pages-container -->
+
+<!-- ═══════════════════════════════════ UNIT MODAL ═══════════════════════════════════ -->
+<div id="unit-modal" style="display:none;" onclick="if(event.target===this)closeUnitModal()">
+  <div id="modal-panel">
+    <div style="padding:20px 24px 0;">
+      <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">
+        <div id="modal-code" style="border-radius:8px;padding:6px 12px;font-weight:800;font-size:15px;flex-shrink:0;min-width:48px;text-align:center;line-height:1.3;"></div>
+        <div style="flex:1;min-width:0;">
+          <div id="modal-title" style="font-size:17px;font-weight:700;color:#f1f5f9;margin-bottom:10px;line-height:1.3;"></div>
+          <div id="modal-badges" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+        <button onclick="closeUnitModal()" style="background:none;border:none;cursor:pointer;color:#475569;font-size:22px;padding:0 4px;flex-shrink:0;line-height:1;" title="Close">×</button>
+      </div>
+      <div style="display:flex;border-bottom:1px solid var(--border);">
+        <button class="tab-btn t-active" id="modal-tab-info"      onclick="switchModalTab('info')">Information</button>
+        <button class="tab-btn"          id="modal-tab-checklist" onclick="switchModalTab('checklist')">Todo / Checklist</button>
+      </div>
     </div>
-    <div style="font-size:12px;color:#3a4268;">
-      Contact: Frederic Bernaroyat — fbernaroyat@palo-it.com — +66 805144156
+    <div id="modal-body">
+      <div id="modal-info-pane"></div>
+      <div id="modal-checklist-pane" style="display:none;"></div>
     </div>
   </div>
-</footer>
+</div>
 
 <!-- ═══════════════════════════════════ JAVASCRIPT ═══════════════════════════════════ -->
 <script>
@@ -1534,49 +1579,21 @@ const RISKS = [
     detail:'Capture what exists in S1. If undocumented, propose a first draft for Accor validation. PALO IT must not define Accor standards unilaterally.' },
 ];
 
+// ──────────────────────────────────── UNIT CATEGORIES ────────────────────────────────────
+
+const UNIT_CATEGORIES = {
+  T1:['development'],          T2:['development','qa'],
+  T3:['development','qa'],     T4:['development'],
+  T5:['monitoring'],           T6:['monitoring'],
+  T7:['qa'],                   T8:['documentation'],
+  T9:['documentation'],        T10:['monitoring'],
+  T11:['infrastructure'],      T12:['development','qa'],
+};
+
 // ──────────────────────────────────── STATE ────────────────────────────────────
 
-let activeFilter = 'all';
-let activeStage  = null;
-
-// ──────────────────────────────────── RENDER PDLC ────────────────────────────────────
-
-function renderPDLC() {
-  const container = document.getElementById('pdlc-stages');
-  container.innerHTML = PDLC_STAGES.map(s => `
-    <div class="stage${s.inScope ? '' : ''}" id="stage-${s.id}" onclick="toggleStage('${s.id}')">
-      <div style="font-size:22px;margin-bottom:6px;">${s.emoji}</div>
-      <div class="s-label" style="font-size:11.5px;font-weight:600;color:#94a3b8;line-height:1.3;">
-        ${s.label}
-        ${s.inScope ? '<span style="color:var(--gold);font-size:10px;display:block;margin-top:2px;">In Scope</span>' : ''}
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleStage(id) {
-  if (activeStage === id) {
-    clearStageFilter();
-    return;
-  }
-  activeStage = id;
-  document.querySelectorAll('.stage').forEach(el => el.classList.remove('s-active'));
-  document.getElementById('stage-' + id).classList.add('s-active');
-  const stage = PDLC_STAGES.find(s => s.id === id);
-  document.getElementById('clear-stage-btn').style.display = '';
-  document.getElementById('stage-filter-label').textContent =
-    `Showing units for: ${stage.label} (${stage.units.join(', ')})`;
-  applyFilters();
-  document.getElementById('units').scrollIntoView({ behavior:'smooth' });
-}
-
-function clearStageFilter() {
-  activeStage = null;
-  document.querySelectorAll('.stage').forEach(el => el.classList.remove('s-active'));
-  document.getElementById('clear-stage-btn').style.display = 'none';
-  document.getElementById('stage-filter-label').textContent = '';
-  applyFilters();
-}
+let activeTab    = 'functional';
+let activeCat    = 'all';
 
 // ──────────────────────────────────── RENDER UNITS ────────────────────────────────────
 
@@ -1595,125 +1612,42 @@ function getCodeColor(unit) {
 function renderUnits() {
   const grid = document.getElementById('units-grid');
 
-  // Group headers
-  const sections = [
-    { label:'Initiation & Wrap-Up', filter: u => u.type === 'special' },
-    { label:'Technical Work Units (T1–T12)', filter: u => u.type === 'technical' },
-    { label:'Functional Work Units (F1–F3)', filter: u => u.type === 'functional' },
-  ];
-
-  let html = '';
-  sections.forEach(sec => {
-    const units = UNITS.filter(sec.filter);
-    html += `<div class="unit-section-title">${sec.label}</div>`;
-    html += units.map(unit => {
-      const cc = getCodeColor(unit);
-      return `
+  grid.innerHTML = UNITS.map(unit => {
+    const cc = getCodeColor(unit);
+    return `
 <div class="unit-card" id="unit-${unit.id}"
   data-type="${unit.type}"
   data-scope="${unit.inScope}"
   data-stages="${unit.stages.join(',')}"
+  data-categories="${(UNIT_CATEGORIES[unit.id]||[]).join(',')}"
   data-code="${unit.id}"
-  data-title="${unit.title.toLowerCase()}">
-  <div class="unit-hdr" onclick="toggleUnit('${unit.id}')">
+  data-title="${unit.title.toLowerCase()}"
+  onclick="openUnitModal('${unit.id}')">
+  <div class="unit-hdr">
     <div style="background:${cc.bg};color:${cc.color};border-radius:8px;padding:6px 11px;font-weight:800;font-size:14px;flex-shrink:0;min-width:42px;text-align:center;line-height:1.2;">${unit.id}</div>
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
         <span class="unit-title" style="font-weight:700;font-size:14.5px;color:#f1f5f9;">${unit.title}</span>
         ${getTypeBadge(unit)}
-        ${unit.inScope ? '<span class="badge b-scope">⭐ In Scope</span>' : ''}
+        ${unit.inScope ? '<span class="badge b-scope">⭐ Priority</span>' : ''}
         ${unit.yourStream && unit.type !== 'special' ? '<span class="badge b-yours">Your Stream</span>' : ''}
         ${unit.highRisk  ? '<span class="badge b-risk">⚠ High Risk</span>' : ''}
         <span class="badge b-dur">${unit.duration}</span>
       </div>
       <p style="font-size:12.5px;color:#64748b;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${unit.purpose}</p>
     </div>
-    <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg style="flex-shrink:0;color:#475569;margin-top:2px;" width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </div>
-  <div class="unit-body">
-    ${unit.id === 'S1' ? `
-    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;margin-top:4px;">
-      <button class="tab-btn t-active" onclick="switchUnitTab('s1','info',this)">Information</button>
-      <button class="tab-btn" onclick="switchUnitTab('s1','todo',this)">Todo / Checklist <span id="s1-tab-badge" style="font-size:11px;color:var(--gold);margin-left:4px;"></span></button>
-    </div>
-    <div id="s1-pane-info" class="tab-pane t-active">
-    ` : '<div style="margin-top:4px;">'}
-
-      <!-- Purpose -->
-      <div class="ub-section">
-        <div class="ub-section-title">Purpose</div>
-        <p style="font-size:13.5px;color:#94a3b8;line-height:1.7;">${unit.purpose}</p>
-      </div>
-
-      <!-- What success looks like -->
-      <div class="success-box">
-        <div class="s-title">✓ What Success Looks Like</div>
-        <p style="font-size:13px;color:#e2e8f0;line-height:1.65;">${unit.success}</p>
-        <p style="font-size:12px;color:#64748b;margin-top:6px;font-style:italic;">Remember: if we hit a blocker we can't resolve — documenting it clearly is equally a success.</p>
-      </div>
-
-      <div class="ub-grid">
-        <div>
-          <!-- Must-haves -->
-          <div class="ub-section">
-            <div class="ub-section-title">Expected Outcomes — Must-Haves</div>
-            <ul class="blist">${unit.mustHaves.map(m => `<li>${m}</li>`).join('')}</ul>
-          </div>
-          <!-- Prereqs -->
-          <div class="ub-section">
-            <div class="ub-section-title">Prerequisites</div>
-            <ul class="blist">${unit.prereqs.map(p => `<li>${p}</li>`).join('')}</ul>
-          </div>
-        </div>
-        <div>
-          <!-- Nice-to-haves -->
-          <div class="ub-section">
-            <div class="ub-section-title">Expected Outcomes — If Time Allows</div>
-            <ul class="blist">${unit.niceToHaves.map(n => `<li>${n}</li>`).join('')}</ul>
-          </div>
-          <!-- Exclusions -->
-          <div class="ub-section">
-            <div class="ub-section-title">Explicitly Excluded</div>
-            <ul class="blist">${unit.exclusions.map(e => `<li>${e}</li>`).join('')}</ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- Resources -->
-      <div class="ub-section" style="padding-top:10px;border-top:1px solid var(--border);margin-top:14px;">
-        <span style="font-size:12px;color:#3a4268;font-weight:600;">Team &amp; Resources:</span>
-        <span style="font-size:12px;color:#64748b;margin-left:6px;">${unit.resources}</span>
-      </div>
-
-    ${unit.id === 'S1' ? `
-    </div><!-- /s1-pane-info -->
-    <div id="s1-pane-todo" class="tab-pane"></div>
-    ` : '</div>'}
-  </div>
 </div>`;
-    }).join('\n');
-  });
+  }).join('\n');
 
-  grid.innerHTML = html;
   updateCount();
 }
 
-function toggleUnit(id) {
-  document.getElementById('unit-' + id).classList.toggle('expanded');
-}
-
-function switchUnitTab(unitId, pane, btn) {
-  const card = document.getElementById('unit-' + unitId.toUpperCase());
-  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('t-active'));
-  card.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('t-active'));
-  btn.classList.add('t-active');
-  document.getElementById(unitId + '-pane-' + pane).classList.add('t-active');
-}
-
 function injectS1Checklist() {
-  const pane = document.getElementById('s1-pane-todo');
+  const pane = document.getElementById('modal-s1-checklist');
   if (!pane) return;
   pane.innerHTML = `
 <div style="padding-top:4px;">
@@ -1846,30 +1780,237 @@ function injectS1Checklist() {
   `;
 }
 
+// ──────────────────────────────────── UNIT MODAL ────────────────────────────────────
+
+function buildInfoPaneHTML(unit) {
+  return `
+    <div class="ub-section">
+      <div class="ub-section-title">Purpose</div>
+      <p style="font-size:13.5px;color:#94a3b8;line-height:1.7;">${unit.purpose}</p>
+    </div>
+    <div class="success-box">
+      <div class="s-title">✓ What Success Looks Like</div>
+      <p style="font-size:13px;color:#e2e8f0;line-height:1.65;">${unit.success}</p>
+      <p style="font-size:12px;color:#64748b;margin-top:6px;font-style:italic;">Remember: if we hit a blocker we can't resolve — documenting it clearly is equally a success.</p>
+    </div>
+    <div class="ub-grid">
+      <div>
+        <div class="ub-section">
+          <div class="ub-section-title">Expected Outcomes — Must-Haves</div>
+          <ul class="blist">${unit.mustHaves.map(m => `<li>${m}</li>`).join('')}</ul>
+        </div>
+        <div class="ub-section">
+          <div class="ub-section-title">Prerequisites</div>
+          <ul class="blist">${unit.prereqs.map(p => `<li>${p}</li>`).join('')}</ul>
+        </div>
+      </div>
+      <div>
+        <div class="ub-section">
+          <div class="ub-section-title">Expected Outcomes — If Time Allows</div>
+          <ul class="blist">${unit.niceToHaves.map(n => `<li>${n}</li>`).join('')}</ul>
+        </div>
+        <div class="ub-section">
+          <div class="ub-section-title">Explicitly Excluded</div>
+          <ul class="blist">${unit.exclusions.map(e => `<li>${e}</li>`).join('')}</ul>
+        </div>
+      </div>
+    </div>
+    <div class="ub-section" style="padding-top:10px;border-top:1px solid var(--border);margin-top:14px;">
+      <span style="font-size:12px;color:#3a4268;font-weight:600;">Team &amp; Resources:</span>
+      <span style="font-size:12px;color:#64748b;margin-left:6px;">${unit.resources}</span>
+    </div>`;
+}
+
+function openUnitModal(id) {
+  const unit = UNITS.find(u => u.id === id);
+  if (!unit) return;
+  const cc = getCodeColor(unit);
+
+  const codeEl = document.getElementById('modal-code');
+  codeEl.textContent = unit.id;
+  codeEl.style.background = cc.bg;
+  codeEl.style.color = cc.color;
+
+  document.getElementById('modal-title').textContent = unit.title;
+  document.getElementById('modal-badges').innerHTML =
+    getTypeBadge(unit) +
+    (unit.inScope ? '<span class="badge b-scope">⭐ Priority</span>' : '') +
+    (unit.yourStream && unit.type !== 'special' ? '<span class="badge b-yours">Your Stream</span>' : '') +
+    (unit.highRisk  ? '<span class="badge b-risk">⚠ High Risk</span>' : '') +
+    `<span class="badge b-dur">${unit.duration}</span>`;
+
+  document.getElementById('modal-info-pane').innerHTML = buildInfoPaneHTML(unit);
+
+  const clPane = document.getElementById('modal-checklist-pane');
+  if (unit.id === 'S1') {
+    clPane.innerHTML =
+      '<div id="modal-s1-checklist"></div>' +
+      '<hr class="divider" style="margin:24px 0;">' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:#3a4268;text-transform:uppercase;margin-bottom:12px;">Your Custom Items</div>' +
+      '<div id="user-checklist-render"></div><div id="user-checklist-add"></div>';
+    injectS1Checklist();
+    initS1Checklist();
+  } else {
+    clPane.innerHTML =
+      '<p style="font-size:13px;color:#64748b;margin-bottom:16px;">Track your own tasks and notes for this unit — saved in your browser.</p>' +
+      '<div id="user-checklist-render"></div><div id="user-checklist-add"></div>';
+  }
+  renderUserChecklist(id);
+
+  document.getElementById('unit-modal').dataset.unitId = id;
+  switchModalTab('info');
+  document.getElementById('unit-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeUnitModal() {
+  const modal = document.getElementById('unit-modal');
+  if (!modal || modal.style.display === 'none') return;
+  modal.style.display = 'none';
+  modal.dataset.unitId = '';
+  document.getElementById('modal-info-pane').innerHTML = '';
+  document.getElementById('modal-checklist-pane').innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+function switchModalTab(tab) {
+  const isInfo = tab === 'info';
+  document.getElementById('modal-info-pane').style.display      = isInfo ? '' : 'none';
+  document.getElementById('modal-checklist-pane').style.display = isInfo ? 'none' : '';
+  document.getElementById('modal-tab-info').classList.toggle('t-active',      isInfo);
+  document.getElementById('modal-tab-checklist').classList.toggle('t-active', !isInfo);
+}
+
+// ──────────────────────────────────── USER CHECKLIST ────────────────────────────────────
+
+function getUnitChecklist(unitId) {
+  try { return JSON.parse(localStorage.getItem('unit_cl_' + unitId) || '[]'); }
+  catch(e) { return []; }
+}
+
+function saveUnitChecklist(unitId, items) {
+  localStorage.setItem('unit_cl_' + unitId, JSON.stringify(items));
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderUserChecklist(unitId) {
+  const items    = getUnitChecklist(unitId);
+  const renderEl = document.getElementById('user-checklist-render');
+  const addEl    = document.getElementById('user-checklist-add');
+  if (!renderEl || !addEl) return;
+
+  renderEl.innerHTML = items.length === 0
+    ? '<p style="font-size:13px;color:#3a4268;padding:4px 0 16px;font-style:italic;">No custom items yet — add one below.</p>'
+    : `<div style="margin-bottom:4px;">${items.map(item => `
+      <div class="cl-item${item.checked ? ' done' : ''}" id="cl-${item.id}">
+        <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleChecklistItem('${unitId}','${item.id}')"
+          style="accent-color:var(--gold);width:14px;height:14px;flex-shrink:0;cursor:pointer;">
+        <span class="cl-text" style="flex:1;font-size:13px;">${escapeHtml(item.text)}</span>
+        <button class="cl-action-btn" onclick="startEditChecklistItem('${unitId}','${item.id}')" title="Edit" style="color:#64748b;">✎</button>
+        <button class="cl-action-btn" onclick="deleteChecklistItem('${unitId}','${item.id}')" title="Delete" style="color:#ef4444;">×</button>
+      </div>`).join('')}</div>`;
+
+  addEl.innerHTML = `
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <input id="cl-new-${unitId}" type="text" placeholder="Add a checklist item…"
+        style="flex:1;background:var(--elevated);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:#e2e8f0;font-size:13px;outline:none;"
+        onkeydown="if(event.key==='Enter')addChecklistItem('${unitId}')"
+        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+      <button onclick="addChecklistItem('${unitId}')"
+        style="background:var(--gold);color:#0f1528;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">+ Add</button>
+    </div>`;
+}
+
+function addChecklistItem(unitId) {
+  const input = document.getElementById('cl-new-' + unitId);
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) { input.focus(); return; }
+  const items = getUnitChecklist(unitId);
+  const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : Date.now().toString(36) + Math.random().toString(36).slice(2);
+  items.push({ id, text, checked: false });
+  saveUnitChecklist(unitId, items);
+  renderUserChecklist(unitId);
+}
+
+function toggleChecklistItem(unitId, itemId) {
+  const items = getUnitChecklist(unitId);
+  const item  = items.find(i => i.id === itemId);
+  if (item) { item.checked = !item.checked; saveUnitChecklist(unitId, items); }
+  renderUserChecklist(unitId);
+}
+
+function deleteChecklistItem(unitId, itemId) {
+  saveUnitChecklist(unitId, getUnitChecklist(unitId).filter(i => i.id !== itemId));
+  renderUserChecklist(unitId);
+}
+
+function startEditChecklistItem(unitId, itemId) {
+  const item = getUnitChecklist(unitId).find(i => i.id === itemId);
+  if (!item) return;
+  const row    = document.getElementById('cl-' + itemId);
+  if (!row) return;
+  const textEl = row.querySelector('.cl-text');
+  if (!textEl) return;
+  const input  = document.createElement('input');
+  input.type   = 'text';
+  input.value  = item.text;
+  input.style.cssText = 'flex:1;background:var(--elevated);border:1px solid var(--gold);border-radius:6px;padding:3px 8px;color:#e2e8f0;font-size:13px;outline:none;';
+  let saved = false;
+  const save = () => {
+    if (saved) return; saved = true;
+    const newText = input.value.trim();
+    if (!newText) { renderUserChecklist(unitId); return; }
+    const items = getUnitChecklist(unitId);
+    const i = items.find(x => x.id === itemId);
+    if (i) { i.text = newText; saveUnitChecklist(unitId, items); }
+    renderUserChecklist(unitId);
+  };
+  input.onkeydown = e => {
+    if (e.key === 'Enter')  save();
+    if (e.key === 'Escape') { saved = true; renderUserChecklist(unitId); }
+  };
+  input.onblur = save;
+  textEl.replaceWith(input);
+  input.focus(); input.select();
+}
+
 // ──────────────────────────────────── FILTERS ────────────────────────────────────
 
-function setFilter(btn, filter) {
-  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('factive'));
+function switchUnitTypeTab(btn, tab) {
+  document.querySelectorAll('.unit-tab').forEach(b => b.classList.remove('t-active'));
+  btn.classList.add('t-active');
+  activeTab = tab;
+  activeCat = 'all';
+  document.querySelectorAll('[data-cat]').forEach(b => b.classList.toggle('factive', b.dataset.cat === 'all'));
+  const isTech = tab === 'technical';
+  document.getElementById('cat-filter-bar').style.display = isTech ? 'flex' : 'none';
+  applyFilters();
+}
+
+function setCat(btn, cat) {
+  document.querySelectorAll('[data-cat]').forEach(b => b.classList.remove('factive'));
   btn.classList.add('factive');
-  activeFilter = filter;
+  activeCat = cat;
   applyFilters();
 }
 
 function applyFilters() {
-  const q = document.getElementById('usearch').value.trim().toLowerCase();
+  const q = (document.getElementById('usearch').value || '').trim().toLowerCase();
   document.querySelectorAll('.unit-card').forEach(card => {
-    const type     = card.dataset.type;
-    const inScope  = card.dataset.scope === 'true';
-    const stages   = card.dataset.stages ? card.dataset.stages.split(',').filter(Boolean) : [];
-    const titleTxt = card.dataset.title || '';
-    const code     = card.dataset.code  || '';
+    const type       = card.dataset.type;
+    const categories = card.dataset.categories ? card.dataset.categories.split(',').filter(Boolean) : [];
+    const titleTxt   = card.dataset.title || '';
+    const code       = card.dataset.code  || '';
 
     let show = true;
-    if (activeFilter === 'technical'  && type !== 'technical')  show = false;
-    if (activeFilter === 'functional' && type !== 'functional') show = false;
-    if (activeFilter === 'special'    && type !== 'special')    show = false;
-    if (activeFilter === 'scope'      && !inScope)              show = false;
-    if (activeStage && !stages.includes(activeStage))           show = false;
+    if (type !== activeTab)                                      show = false;
+    if (activeCat !== 'all' && !categories.includes(activeCat)) show = false;
     if (q && !titleTxt.includes(q) && !code.includes(q))       show = false;
 
     card.classList.toggle('u-hidden', !show);
@@ -1922,27 +2063,34 @@ function showTimeline(mode) {
 // ──────────────────────────────────── NAV ACTIVE ────────────────────────────────────
 
 function initNavScroll() {
-  const sections = ['context','approach','pdlc','units','your-role','mock-project','team','timeline','tools','risks'];
-  const links = {};
-  sections.forEach(id => {
-    const el = document.querySelector(`a[href="#${id}"]`);
-    if (el) links[id] = el;
-  });
+  const ALL_PAGES = ['hero','context','approach','units','your-role','mock-project','team','timeline','tools','risks'];
 
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        Object.values(links).forEach(l => l.classList.remove('active'));
-        const id = entry.target.id;
-        if (links[id]) links[id].classList.add('active');
-      }
+  function showPage(id) {
+    if (!ALL_PAGES.includes(id)) id = 'hero';
+    ALL_PAGES.forEach(pid => {
+      const el = document.getElementById(pid);
+      if (el) el.classList.remove('page-active');
     });
-  }, { rootMargin:'-20% 0px -70% 0px' });
+    const target = document.getElementById(id);
+    if (target) {
+      target.classList.add('page-active');
+      target.scrollTop = 0;
+    }
+    document.querySelectorAll('button[data-page]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.page === id);
+    });
+    history.replaceState(null, '', '#' + id);
+  }
 
-  sections.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) observer.observe(el);
+  document.querySelectorAll('button[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => showPage(btn.dataset.page));
   });
+
+  const homeBtn = document.getElementById('nav-home');
+  if (homeBtn) homeBtn.addEventListener('click', () => showPage('hero'));
+
+  const hash = location.hash.slice(1);
+  showPage(hash || 'hero');
 }
 
 // ──────────────────────────────────── S1 CHECKLIST ────────────────────────────────────
@@ -1963,10 +2111,8 @@ function updateS1Total() {
   const done = [...all].filter(b => b.checked).length;
   const lbl  = document.getElementById('s1-total-label');
   const bar  = document.getElementById('s1-progress-bar');
-  const badge = document.getElementById('s1-tab-badge');
   if (lbl) lbl.textContent = `${done} / ${S1_TOTAL} done`;
   if (bar) bar.style.width = `${Math.round((done / S1_TOTAL) * 100)}%`;
-  if (badge) badge.textContent = done > 0 ? `${done}/${S1_TOTAL}` : '';
 }
 
 function initS1Checklist() {
@@ -2004,12 +2150,11 @@ function clearS1Checklist() {
 // ──────────────────────────────────── INIT ────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  renderPDLC();
   renderUnits();
-  injectS1Checklist();   // must run after renderUnits so #s1-pane-todo exists
+  applyFilters();
   renderRisks();
   initNavScroll();
-  initS1Checklist();
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeUnitModal(); });
 });
 </script>
 </body>
