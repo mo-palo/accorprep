@@ -91,6 +91,11 @@
     .cl-card { background:var(--elevated);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:border-color .15s; }
     .cl-card:hover { border-color:var(--border-h); }
     .cl-card.clarify { border-color:rgba(234,179,8,.5); }
+    /* Drag and drop */
+    .cl-card[draggable="true"] { cursor:grab;user-select:none; }
+    .cl-card[draggable="true"]:active { cursor:grabbing; }
+    .cl-card.dragging { opacity:0.5;background:var(--bg);border-color:var(--border); }
+    .cl-card.drag-over { border-color:var(--gold);background:rgba(212,175,55,.08);box-shadow:inset 0 0 0 2px rgba(212,175,55,.3); }
     .cl-card-row { display:flex;align-items:center;gap:8px; }
     .cl-card-title { flex:1;font-size:13px;color:#cbd5e1;min-width:0;word-break:break-word;line-height:1.5; }
     .cl-card-title.done { color:#4a5568;text-decoration:line-through; }
@@ -2217,7 +2222,12 @@ function _buildDisplayCard(unitId, item) {
   const noteHtml = hasExtra
     ? `<div class="cl-note-display" id="cl-note-display-${item.id}">${noteSection}${questionSection}${planSection}</div>`
     : '';
-  return `<div class="cl-card${item.clarify?' clarify':''}" id="cl-card-${item.id}">
+  return `<div class="cl-card${item.clarify?' clarify':''}" id="cl-card-${item.id}" draggable="true" 
+    ondragstart="onChecklistCardDragStart(event,'${unitId}','${item.id}')"
+    ondragend="onChecklistCardDragEnd(event)"
+    ondragover="onChecklistCardDragOver(event)"
+    ondragleave="onChecklistCardDragLeave(event)"
+    ondrop="onChecklistCardDrop(event,'${unitId}','${item.id}')">
   <div class="cl-card-row">
     <input type="checkbox" ${item.checked?'checked':''} onchange="toggleChecklistItem('${unitId}','${item.id}')"
       style="accent-color:var(--gold);width:14px;height:14px;flex-shrink:0;cursor:pointer;">
@@ -2435,6 +2445,69 @@ function confirmDeleteItem(unitId, itemId) {
 function deleteChecklistItem(unitId, itemId) {
   saveUnitChecklist(unitId, getUnitChecklist(unitId).filter(i => i.id !== itemId));
   renderUserChecklist(unitId);
+}
+
+/* ── Drag and drop handlers ── */
+let draggedCardData = null;
+
+function onChecklistCardDragStart(event, unitId, itemId) {
+  draggedCardData = { unitId, itemId };
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/html', event.currentTarget.innerHTML);
+  event.currentTarget.classList.add('dragging');
+  /* Slight delay for visual feedback */
+  setTimeout(() => {
+    event.currentTarget.classList.add('dragging');
+  }, 0);
+}
+
+function onChecklistCardDragEnd(event) {
+  document.querySelectorAll('.cl-card').forEach(card => {
+    card.classList.remove('dragging', 'drag-over');
+  });
+  draggedCardData = null;
+}
+
+function onChecklistCardDragOver(event) {
+  if (!draggedCardData) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  const card = event.currentTarget;
+  if (card.id !== 'cl-card-' + draggedCardData.itemId) {
+    card.classList.add('drag-over');
+  }
+}
+
+function onChecklistCardDragLeave(event) {
+  const card = event.currentTarget;
+  card.classList.remove('drag-over');
+}
+
+function onChecklistCardDrop(event, unitId, targetItemId) {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  if (!draggedCardData || draggedCardData.unitId !== unitId || draggedCardData.itemId === targetItemId) {
+    document.querySelectorAll('.cl-card').forEach(card => card.classList.remove('drag-over'));
+    return;
+  }
+
+  const items = getUnitChecklist(unitId);
+  const draggedIndex = items.findIndex(i => i.id === draggedCardData.itemId);
+  const targetIndex = items.findIndex(i => i.id === targetItemId);
+  
+  if (draggedIndex === -1 || targetIndex === -1) return;
+
+  /* Reorder array */
+  const [draggedItem] = items.splice(draggedIndex, 1);
+  items.splice(targetIndex, 0, draggedItem);
+  
+  /* Save and re-render */
+  saveUnitChecklist(unitId, items);
+  renderUserChecklist(unitId);
+  
+  /* Clear drag states */
+  document.querySelectorAll('.cl-card').forEach(card => card.classList.remove('drag-over'));
 }
 
 // ──────────────────────────────────── FILTERS ────────────────────────────────────
