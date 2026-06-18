@@ -94,6 +94,10 @@
     /* Drag and drop */
     .cl-card[draggable="true"] { cursor:grab;user-select:none; }
     .cl-card[draggable="true"]:active { cursor:grabbing; }
+    .cl-card.done .cl-card-row > *:not(input[type="checkbox"]),
+    .cl-card.done .cl-note-display { opacity:0.35;filter:grayscale(0.35); }
+    .cl-card.done:hover .cl-card-row > *:not(input[type="checkbox"]),
+    .cl-card.done:hover .cl-note-display { opacity:0.55;filter:grayscale(0.2); }
     .cl-card.dragging { opacity:0.5;background:var(--bg);border-color:var(--border); }
     .cl-card.drag-over { border-color:var(--gold);background:rgba(212,175,55,.08);box-shadow:inset 0 0 0 2px rgba(212,175,55,.3); }
     .cl-card-row { display:flex;align-items:center;gap:8px; }
@@ -2222,7 +2226,7 @@ function _buildDisplayCard(unitId, item) {
   const noteHtml = hasExtra
     ? `<div class="cl-note-display" id="cl-note-display-${item.id}">${noteSection}${questionSection}${planSection}</div>`
     : '';
-  return `<div class="cl-card${item.clarify?' clarify':''}" id="cl-card-${item.id}" draggable="true" 
+  return `<div class="cl-card${item.checked?' done':''}${item.clarify?' clarify':''}" id="cl-card-${item.id}" draggable="true" 
     ondragstart="onChecklistCardDragStart(event,'${unitId}','${item.id}')"
     ondragend="onChecklistCardDragEnd(event)"
     ondragover="onChecklistCardDragOver(event)"
