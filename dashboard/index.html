@@ -1270,7 +1270,7 @@
 </div><!-- /pages-container -->
 
 <!-- ═══════════════════════════════════ UNIT MODAL ═══════════════════════════════════ -->
-<div id="unit-modal" style="display:none;" onclick="if(event.target===this)closeUnitModal()">
+<div id="unit-modal" style="display:none;" onclick="if(event.target===this && !document.querySelector('.cl-form'))closeUnitModal()">
   <div id="modal-panel">
     <div style="padding:20px 24px 0;">
       <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">
@@ -1937,14 +1937,22 @@ function openUnitModal(id) {
   document.body.style.overflow = 'hidden';
 }
 
-function closeUnitModal() {
-  const modal = document.getElementById('unit-modal');
-  if (!modal || modal.style.display === 'none') return;
+function _doCloseUnitModal(modal) {
   modal.style.display = 'none';
   modal.dataset.unitId = '';
   document.getElementById('modal-info-pane').innerHTML = '';
   document.getElementById('modal-checklist-pane').innerHTML = '';
   document.body.style.overflow = '';
+}
+
+function closeUnitModal() {
+  const modal = document.getElementById('unit-modal');
+  if (!modal || modal.style.display === 'none') return;
+  if (_hasFormContent()) {
+    _showDiscardConfirm(() => _doCloseUnitModal(modal));
+    return;
+  }
+  _doCloseUnitModal(modal);
 }
 
 function switchModalTab(tab) {
@@ -2166,6 +2174,7 @@ function escapeHtml(str) {
 
 /* ── Render list ── */
 function renderUserChecklist(unitId) {
+  _editFormOriginal = null;
   const raw      = getUnitChecklist(unitId);
   const items    = raw.map(it => ({ priority:null, clarify:false, note:'', plan:'', question:'', ...it }));
   const renderEl = document.getElementById('user-checklist-render');
@@ -2271,7 +2280,59 @@ function showAddForm(unitId) {
   addEl.querySelector('.cl-form-input')?.focus();
 }
 
+/* ── Unsaved-content guard ── */
+let _editFormOriginal = null;
+
+function _hasFormContent() {
+  const form = document.querySelector('.cl-form');
+  if (!form) return false;
+  const eid      = form.id.replace(/^cl-form-/, '');
+  const title    = (document.getElementById('cl-edit-title-' + eid)?.value || '').trim();
+  const opts     = document.getElementById('cl-prio-opts-' + eid);
+  const priority = opts?.dataset.val || 'none';
+  const note     = (document.getElementById('cl-form-note-' + eid)?.value || '').trim();
+  const question = (document.getElementById('cl-form-question-' + eid)?.value || '').trim();
+  const plan     = (document.getElementById('cl-form-plan-' + eid)?.value || '').trim();
+  const clarify  = !!(document.getElementById('cl-form-clarify-' + eid)?.classList.contains('active'));
+  if (_editFormOriginal) {
+    return title    !== _editFormOriginal.title    ||
+           priority !== _editFormOriginal.priority ||
+           note     !== _editFormOriginal.note     ||
+           question !== _editFormOriginal.question ||
+           plan     !== _editFormOriginal.plan     ||
+           clarify  !== _editFormOriginal.clarify;
+  }
+  // Add mode: any content counts
+  return !!(title || note || question || plan || priority !== 'none' || clarify);
+}
+
+function _showDiscardConfirm(onConfirm) {
+  if (document.getElementById('discard-confirm-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'discard-confirm-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:var(--elevated);border:1px solid var(--border-h);border-radius:12px;padding:24px 28px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.6);">
+      <div style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:8px;">Discard changes?</div>
+      <div style="font-size:13px;color:#94a3b8;margin-bottom:20px;line-height:1.5;">You have unsaved content. If you close now, your changes will be lost.</div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button id="discard-keep-btn" type="button" style="padding:7px 16px;background:none;border:1px solid var(--border);border-radius:7px;color:#94a3b8;font-size:13px;cursor:pointer;">Keep editing</button>
+        <button id="discard-confirm-btn" type="button" style="padding:7px 18px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);border-radius:7px;color:#fca5a5;font-size:13px;font-weight:700;cursor:pointer;">Discard</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('discard-keep-btn').onclick = () => overlay.remove();
+  document.getElementById('discard-confirm-btn').onclick = () => { overlay.remove(); onConfirm(); };
+}
+
 function hideAddForm(unitId) {
+  if (_hasFormContent()) {
+    _showDiscardConfirm(() => {
+      const addEl = document.getElementById('user-checklist-add');
+      if (addEl) _renderAddTrigger(unitId, addEl);
+    });
+    return;
+  }
   const addEl = document.getElementById('user-checklist-add');
   if (addEl) _renderAddTrigger(unitId, addEl);
 }
@@ -2280,6 +2341,14 @@ function hideAddForm(unitId) {
 function startEditChecklistItem(unitId, itemId) {
   const item = getUnitChecklist(unitId).find(i => i.id === itemId);
   if (!item) return;
+  _editFormOriginal = {
+    title:    item.text     || '',
+    priority: item.priority || 'none',
+    note:     item.note     || '',
+    question: item.question || '',
+    plan:     item.plan     || '',
+    clarify:  !!(item.clarify)
+  };
   const card = document.getElementById('cl-card-' + itemId);
   if (!card) return;
   const tmp = document.createElement('div');
@@ -2289,6 +2358,10 @@ function startEditChecklistItem(unitId, itemId) {
 }
 
 function cancelEditChecklistItem(unitId) {
+  if (_hasFormContent()) {
+    _showDiscardConfirm(() => renderUserChecklist(unitId));
+    return;
+  }
   renderUserChecklist(unitId);
 }
 
@@ -2689,7 +2762,13 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRisks();
   initNavScroll();
   initStorage();
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeUnitModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const overlay = document.getElementById('discard-confirm-overlay');
+      if (overlay) { overlay.remove(); return; }
+      closeUnitModal();
+    }
+  });
 });
 </script>
 </body>
