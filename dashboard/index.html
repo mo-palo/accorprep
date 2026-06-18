@@ -100,6 +100,9 @@
     .cl-card.done:hover .cl-note-display { opacity:0.75;filter:grayscale(0.2); }
     .cl-card.dragging { opacity:0.5;background:var(--bg);border-color:var(--border); }
     .cl-card.drag-over { border-color:var(--gold);background:rgba(212,175,55,.08);box-shadow:inset 0 0 0 2px rgba(212,175,55,.3); }
+    /* Form-active lock — dim non-form items */
+    .cl-editing .cl-card { opacity:0.3; pointer-events:none; transition:opacity .2s; }
+    .cl-editing .cl-add-trigger { opacity:0.3; pointer-events:none; }
     .cl-card-row { display:flex;align-items:center;gap:8px; }
     .cl-card-title { flex:1;font-size:13px;color:#cbd5e1;min-width:0;word-break:break-word;line-height:1.5; }
     .cl-card-title.done { color:#4a5568;text-decoration:line-through; }
@@ -2256,6 +2259,7 @@ function _buildDisplayCard(unitId, item) {
 }
 
 function _renderAddTrigger(unitId, el) {
+  document.getElementById('modal-checklist-pane')?.classList.remove('cl-editing');
   el.innerHTML = `<button class="cl-add-trigger" id="cl-add-trigger-${unitId}" onclick="showAddForm('${unitId}')">
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     Add a todo
@@ -2278,6 +2282,7 @@ function showAddForm(unitId) {
   if (!addEl) return;
   addEl.innerHTML = _buildForm(unitId, null, { text:'', priority:null, clarify:false, note:'', plan:'', question:'' });
   addEl.querySelector('.cl-form-input')?.focus();
+  document.getElementById('modal-checklist-pane')?.classList.add('cl-editing');
 }
 
 /* ── Unsaved-content guard ── */
@@ -2355,6 +2360,7 @@ function startEditChecklistItem(unitId, itemId) {
   tmp.innerHTML = _buildForm(unitId, itemId, item);
   card.replaceWith(tmp.firstElementChild);
   document.getElementById('cl-edit-title-' + itemId)?.focus();
+  document.getElementById('modal-checklist-pane')?.classList.add('cl-editing');
 }
 
 function cancelEditChecklistItem(unitId) {
